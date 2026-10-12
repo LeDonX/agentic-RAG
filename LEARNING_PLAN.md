@@ -119,7 +119,8 @@ python project/
 ├── apps/ui/app.py                 # Streamlit（含 👍/👎 反馈按钮）
 ├── scripts/                       # ingest / chat / evaluate / export_badcases
 ├── tests/                         # unit/ + integration/
-└── docs/                          # architecture.md（架构图）+ interview.md
+├── docs/                          # architecture.md（架构图）+ interview.md
+└── learning/                      # 每日学习练习脚本（day0X_*.py，随学习进度新增）
 ```
 
 **设计依据**（来自真实项目，非凭空）：

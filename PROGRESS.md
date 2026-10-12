@@ -32,8 +32,8 @@
 
 | Day | 主题 | 状态 | 产出物 | 备注 |
 |---|---|---|---|---|
-| 1 | 环境搭建（uv）、REPL、`__main__`、Python vs Java | 已完成 | `day01_demo.py`；骨架 `src/agentic_rag/` | 验收通过 |
-| 2 | 基础语法（动态类型 / f-string / None） | 已完成 | `day02_calculator.py` | 4 组用例通过；已纠正 `/` 与 `//` |
+| 1 | 环境搭建（uv）、REPL、`__main__`、Python vs Java | 已完成 | `learning/day01_demo.py`；骨架 `src/agentic_rag/` | 验收通过 |
+| 2 | 基础语法（动态类型 / f-string / None） | 已完成 | `learning/day02_calculator.py` | 4 组用例通过；已纠正 `/` 与 `//` |
 | 3 | 容器（list/dict/set、推导式、切片、解包） | 未开始 | | |
 | 4 | 控制流与函数（默认参数、`*args/**kwargs`、lambda） | 未开始 | | |
 | 5 | 面向对象（class、`self`、`@dataclass`、魔术方法） | 未开始 | | |
