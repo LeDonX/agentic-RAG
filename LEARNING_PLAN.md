@@ -76,6 +76,7 @@ python project/
 ├── PROMPT.md                      # 导师提示词
 ├── LEARNING_PLAN.md               # 本文件
 ├── PROGRESS.md                    # 进度追踪
+├── NOTES.md                       # 知识点速记 + 错题本（追加式）
 ├── README.md
 ├── pyproject.toml                 # uv 管理依赖
 ├── .env.example
