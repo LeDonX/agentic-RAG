@@ -13,21 +13,23 @@
 - 开始日期：2026-10-10
 
 ## 当前进度
-- **当前 Day：3（进行中）**
+- **当前 Day：4（下一步；Day 3 已完成）**
 - **当前里程碑：M1（可运行版）**
-- 上次会话：Day 3 部分完成 —— Block A（list / tuple / for 语法）**验收通过**；Block B（dict / set）**已讲未练**；Block C（推导式 / 切片 / 解包）**未讲**
-- **恢复点（新机器从这里起）**：Day 3 → Block B 动手任务 `TODO 4–7`（写进 `learning/day03_containers.py`）→ Block C → 当日验收
-- 下一步：完成 Day 3 剩余部分并验收 → Day 4（控制流与函数）
+- 上次会话（2026-10-13，Day 3）：Block A/B/C 全部完成，`day03_containers.py` TODO 1–10 跑通，**Day 3 验收通过**（Q3 经纠正后掌握）
+- **恢复点（新机器从这里起）**：Day 3 已完成 → 直接开始 **Day 4（控制流与函数）**
+- 下一步：Day 4 —— 控制流与函数（默认参数、`*args/**kwargs`、作用域、lambda）
 
 ## 环境信息
-- Python 版本：3.12.15（uv 托管，项目锁定 3.12）— ⚠️ 见下方待确认项
-- 包管理器：uv 0.12.24
-- 虚拟环境：项目根目录 `.venv`
+- Python 版本：3.12.15（uv 托管，项目锁定 3.12）
+- 包管理器：uv 0.12.24（已在 PATH）
+- 虚拟环境：项目根目录 `.venv`（存在）
+- 运行方式：统一用 `uv run python <脚本>`（裸 `python` 不在 PATH，直接调用会失败）
 - Ollama 模型：未安装（Day 8 处理）
 - 关键依赖：暂无（骨架 `src/agentic_rag/`，入口点 `agentic-rag`）
 
-> ⚠️ **环境待确认（2026-10-13）**：当前机器上 `uv` 不在 PATH、项目根**没有** `.venv`，`python` 实际指向系统 **Python 3.11.5**——与上表记录（uv 0.12.24 / 3.12.15）不符。
-> 换机器续学前请先跑 `uv --version` 与 `python --version` 确认，并把结果回写本节。
+> ✅ **环境已复核（2026-10-13，本机）**：`uv --version` = 0.12.24；`uv run python --version` = 3.12.15；项目根 `.venv` 存在。
+> 注意：裸 `python --version` 无输出（未加入 PATH），运行脚本请统一用 `uv run python <脚本>`。
+> ⚠️ **另一台机器**（当天做 Block A 的那台）无 uv、无 `.venv`，`python` 指向系统 3.11.5 —— 若再到那台机器续学，先装 uv 并 `uv sync` 再继续。
 
 ## 配套文件
 - `LEARNING_PLAN.md`：6 周 42 天计划、验收标准
@@ -44,7 +46,7 @@
 |---|---|---|---|---|
 | 1 | 环境搭建（uv）、REPL、`__main__`、Python vs Java | 已完成 | `learning/day01_demo.py`；骨架 `src/agentic_rag/` | 验收通过 |
 | 2 | 基础语法（动态类型 / f-string / None） | 已完成 | `learning/day02_calculator.py` | 4 组用例通过；已纠正 `/` 与 `//` |
-| 3 | 容器（list/dict/set、推导式、切片、解包） | 进行中 | `learning/day03_containers.py`（TODO 1–3 已通过，TODO 4–7 待做） | Block A 验收通过；Block B 已讲未练；Block C 未讲 |
+| 3 | 容器（list/dict/set、推导式、切片、解包） | 已完成 | `learning/day03_containers.py`（TODO 1–10 全部跑通） | 验收通过；已纠正 M-03-4/5/6 |
 | 4 | 控制流与函数（默认参数、`*args/**kwargs`、lambda） | 未开始 | | |
 | 5 | 面向对象（class、`self`、`@dataclass`、魔术方法） | 未开始 | | |
 | 6 | 模块/包/依赖管理/类型注解/异常 | 未开始 | | |
@@ -133,9 +135,9 @@
 - [ ] README + architecture.md + 面试问答整理完成
 
 ## 遗留问题 / 待办
-- **Day 3 未完成**：Block B（dict/set）动手任务 `TODO 4–7` 未做；Block C（推导式/切片/解包）未讲 —— **下次从 Block B 起**
-- ⚠️ **环境待确认**：`uv` 不在 PATH、项目根无 `.venv`、`python` 指向系统 3.11.5（详见「环境信息」）
-- 待复习错题：M-03-3（f-string 当类型转换用）标记 🔁；M-03-1 / M-03-2 已掌握
+- **Day 3 已完成**，无遗留（TODO 1–10 全部跑通，验收通过）
+- ✅ **环境已复核（本机）**：uv 0.12.24 / `uv run python` 3.12.15 / `.venv` 存在（详见「环境信息」）
+- 待复习错题：M-03-3（f-string 当类型转换）、M-03-4（括号不配对）、M-03-5（变量名拼错）；M-03-1 / M-03-2 / M-03-6 已掌握
 - 跨机器续接：换机器前把 `PROGRESS.md` / `NOTES.md` / `LEARNING_PLAN.md` / `learning/` 同步（或用 git 提交推送），否则新机器读不到进度
 
 ## 会话日志
@@ -143,4 +145,4 @@
 |---|---|---|---|---|
 | 2026-10-10 | 1 | uv 0.12.24 + Python 3.12.15 环境搭建；`src/agentic_rag/` 骨架；`__main__` 与 Java 心智模型验收通过 | `NOTES.md` → Day 01 | Day 2 |
 | 2026-10-12 | 2 | 基础语法（数值/字符串/f-string/None/IO）；完成 `day02_calculator.py`，4 组用例通过 | `NOTES.md` → Day 02（含错题 M-02-1） | Day 3 |
-| 2026-10-13 | 3 | Block A（list/tuple/for 语法）讲解 + `day03_containers.py` TODO 1–3 跑通（平均分 78.75）；Block B（dict/set）已讲未练 | `NOTES.md` → Day 03（错题 M-03-1/2/3，均已修正） | Block B 动手 → Block C |
+| 2026-10-13 | 3 | Block A（list/tuple/for）由上一会话完成；本次补齐 **Block B（dict/set）+ Block C（推导式/切片/解包）**，`day03_containers.py` TODO 1–10 全部跑通，Day 3 验收通过 | `NOTES.md` → Day 03（错题 M-03-1/2/3/4/5/6） | Day 4 |

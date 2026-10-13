@@ -18,6 +18,9 @@
 | M-03-1 | 3 | 格式说明符 `.2f` 不能脱离 f-string 使用 | 0 | ✅ 已掌握 |
 | M-03-2 | 3 | 累加变量未初始化就 `+=` | 0 | ✅ 已掌握 |
 | M-03-3 | 3 | 把 f-string 当类型转换用 | 0 | 🔁 复习中 |
+| M-03-4 | 3 | 括号不配对（多打一个 `)`）→ SyntaxError | 0 | ☐ 待复习 |
+| M-03-5 | 3 | 变量名拼写错误 → NameError | 0 | ☐ 待复习 |
+| M-03-6 | 3 | 误解「list 不能当 key」的原因；实为不可哈希 | 0 | ✅ 已掌握 |
 
 > 状态：☐ 待复习 / 🔁 复习中 / ✅ 已掌握
 > 规则：同一根因**再次踩坑不新增条目**，只在原条目追加 `复发：Day XX` 并把计数 +1——用来暴露真正没掌握的点。
@@ -78,9 +81,9 @@
 
 ## Day 03 — 容器（2026-10-13）
 
-**产出物**：`learning/day03_containers.py`（进行中：TODO 1–3 通过，TODO 4–7 待做）
-**状态**：Block A（list/tuple/for）已完成；Block B（dict/set）已讲未练；Block C（推导式/切片/解包）未讲
-> Block C（推导式 / 切片 / 解包）讲完后在本节补充对应知识点；Block B 要点已先行记录。
+**产出物**：`learning/day03_containers.py`（**已完成**：TODO 1–10 全部跑通；Day 3 验收通过）
+**状态**：Block A（list/tuple/for）、Block B（dict/set）、Block C（推导式/切片/解包）**全部完成**；当日验收通过（3 题，Q3 经纠正后掌握）
+> Block A 知识点由上一会话记录；Block B / Block C 为本次会话补齐。
 
 ### 一、知识点速记 `#知识点`
 
@@ -99,11 +102,24 @@
   - `for name, score in students:` = 遍历「元组列表」时**直接解包**（Java 只能先取对象再逐个 get）
 - **执行模型（本次观感来源）**：Python **先整篇编译再执行** → 语法错误会挡住后面的运行期错误，所以只报第一个错
 
-**Block B — dict / set（已讲，待练）**
+**Block B — dict / set（本次会话讲 + 练，验收通过）**
 
 - **`dict`**：`d[k]` 取不到 **抛 `KeyError`**；`d.get(k, default)` 才安全；`"k" in d` 判 key；**保持插入顺序**
   - Java 对照：≈ `HashMap`，但 Java `get` 取不到返回 `null`（不报错）——**最大惯性坑**
+  - `dict(二元组列表)` 可直接转换（如 `dict(students)`）；`for k, v in d.items()` 遍历（≈ `entrySet()`）
+  - **key 必须可哈希**：`str/int/tuple` 可以，`list` **不行**
 - **`set`**：自动去重、元素必须可哈希；`|` `&` `-` 有**独立运算符**（Java 只能调 `addAll/retainAll/removeAll`，且会原地改）
+  - ⚠️ `{}` 是**空 dict**，空集合必须写 `set()`
+  - **`set` 无序**：顺序由哈希决定、**跨进程还会变**（CPython 对 `str` 默认哈希随机化）→ 要顺序别用 `set`，用 `list`/`dict`
+
+**Block C — 切片 / 推导式 / 解包**
+
+- **切片 `seq[start:stop:step]`**：含头不含尾；`s[::-1]` 反转、`s[::2]` 隔一个取
+  - Java 对照：Java 无切片语法，最接近 `subList`；但 **`subList` 是视图（改它会改原 list）**，Python 切片是**新对象（拷贝）**——关键差异
+- **推导式**：`[表达式 for x in 可迭代 if 条件]`；字典推导式 `{k: v for ...}`；集合推导式 `{x for ...}`
+  - Java 对照：≈ Stream API `filter/map/collect`，但 Python 一行搞定；列表推导式**立即求值**，要**惰性**用生成器表达式 `(x for ...)`
+- **解包**：`first, *rest = seq`（`*` 把剩余收成一个 `list`）；`a, b = b, a` 交换无需临时变量
+  - Java 对照：Java 无多重赋值 / 星号解包，交换必须用 `temp`
 
 ### 二、错题 / 踩坑 `#错题`
 
@@ -132,4 +148,32 @@
 - **根因**：f-string 的作用是**排版出字符串**，不是做类型转换；`f"{88}"` 得到的是 `"88"`（str），`int + str` 直接报错
 - **正解**：`total += score`；真要转类型用 `int()` / `float()` / `str()`
 - **Java 对照**：Java 里 `s + 88` 会**隐式**把 88 转成字符串；Python **不做隐式转换**，`int + str` 一律 TypeError——动态类型语言要求你显式转换
+- **复发**：—
+
+#### M-03-4｜括号不配对 `#语法`
+
+- **现象**：`print(score_map.get("赵七", 0)))` → `SyntaxError: unmatched ')'`；Python **先整篇编译再执行**，所以后面正确的 TODO 4/6/7 全都不执行
+- **错误写法**：`print(score_map.get("赵七", 0)))`（多打一个右括号）
+- **根因**：`print(` 一层、`get(` 一层，只需 **2** 个 `)`；多出的第 3 个无处配对
+- **正解**：`print(score_map.get("赵七", 0))`
+- **Java 对照**：Java 靠 `{}`、语法错误同样编译期报错，所以这不是 Python 特有；真正要点是**括号/引号必须成对**，且 SyntaxError 会**挡住整文件执行**（呼应 M-03-1）
+- **复发**：—
+
+#### M-03-5｜变量名拼写错误 `#语法`
+
+- **现象**：`print(sccres[::-1])` → `NameError: name 'sccres' is not defined. Did you mean: 'score'?`；**前面几行正常打印后才崩**
+- **错误写法**：`sccres`（把 `scores` 拼错）
+- **根因**：Python 没有「声明」，名字必须先赋值存在；拼错的名字从未绑定过 → NameError
+- **正解**：`print(scores[::-1])`
+- **Java 对照**：Java 拼错变量名是**编译期**错误、整份代码不编译；Python 是**运行期**才报，且**前面已执行的输出保留**——这正是 **SyntaxError（全不跑）vs NameError（跑到那行才崩）** 的分水岭
+- **复发**：—
+
+#### M-03-6｜误解「list 不能当 key」的原因 `#概念`
+
+- **现象（验收 Q3 答错）**：答成「list 可变→可能重复→违反 set 去重特性」，把「哈希」与「去重」混为一谈
+- **根因**：真正原因是 **`list` 不可哈希（unhashable）**，与「是否会重复」无关。`dict`/`set` 靠 `hash()` 定位；Python 对**可变容器故意不提供 `__hash__`** → `hash([1,2])` 报 `TypeError: unhashable type: 'list'`
+- **为什么可变就不能哈希**：list 当 key 后若内容变了 → 哈希也变 → 找不回该 key，整个哈希结构损坏
+- **正解**：用 `tuple`（不可变→可哈希）：`d[("张三", 88)]` 合法；可变容器一律不行
+- **Java 对照**：Java **不禁止**可变对象当 key（编译期不管），只有运行时 hashCode 变了才会 `get` 不到（经典坑）；Python 在语言层面直接把可变容器设为不可哈希
+- **复述（2026-10-13，已掌握）**：答「list 可变 → 不可哈希；tuple 不可变 → 可哈希」✅
 - **复发**：—
