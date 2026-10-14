@@ -1,0 +1,299 @@
+====================================================================
+  📒  Python 学习笔记 & 错题本（纯文本版）
+====================================================================
+  说明
+   · 与 PROGRESS.md 平级：进度看 PROGRESS.md，知识与错误看本文件
+   · 记法：追加式，只增不改（勘误以「更正(日期)」条目追加）
+   · 错题即时记：导师一旦纠正我的错误，当场追加一条错题（不等收尾）
+   · 知识点收尾补：每天收尾时追加当天「知识点速记」
+   · 标签：#知识点  #错题  #易复发（可用搜索检索）
+   · 每周复盘日（Day 7/14/21/28）从「错题索引」抽 2~3 题复习
+
+
+--------------------------------------------------------------------
+  📑  错题索引
+--------------------------------------------------------------------
+  图例：☐ 待复习    🔁 复习中    ✅ 已掌握
+
+  ✅ M-02-1  Day2  / 是浮点除，// 才是整除
+  ✅ M-03-1  Day3  格式说明符 .2f 不能脱离 f-string 使用
+  ✅ M-03-2  Day3  累加变量未初始化就 +=
+  🔁 M-03-3  Day3  把 f-string 当类型转换用
+  ☐ M-03-4  Day3  括号不配对（多打一个 )）→ SyntaxError
+  ☐ M-03-5  Day3  变量名拼写错误 → NameError
+  ✅ M-03-6  Day3  误解「list 不能当 key」的原因；实为不可哈希
+  🔁 M-04-1  Day4  用 if 过滤代替打印布尔结果 → 漏掉反例、两列无法对比
+  🔁 M-04-2  Day4  把「空容器判假」的原因说成「空值为 0」（实为长度 0）
+  ☐ M-04-3  Day4  把「只 print 的函数」再包一层 print → 多打一行 None
+  ☐ M-04-4  Day4  for...else 的 else 条件误答成「完整循环结束后」
+
+  规则：同一根因再次踩坑不新增条目，只在原条目追加「复发：Day XX」并把计数 +1。
+
+
+════════════════════════════════════════════════════════════════════
+ 🗓️  Day 01 — 环境搭建 & Python 心智模型（2026-10-10）
+════════════════════════════════════════════════════════════════════
+ 📦 产出物：learning/day01_demo.py、learning/day01_indent.py、骨架 src/agentic_rag/
+
+ ── 💡 一、知识点速记 ─────────────────────────────────────────────
+  · 包管理（uv）：uv 统一管 Python 版本(3.12.15)与依赖，虚拟环境在项目根 .venv
+        对比 Java：uv ≈ Maven/Gradle + nvm 的合体；pyproject.toml ≈ pom.xml
+  · 缩进即语法：缩进决定代码块归属，没有 {}；同一块缩进必须一致
+        对比 Java：Java 靠 {} 划分块，缩进只是风格；Python 缩进是语法的一部分
+  · 入口判断：if __name__ == "__main__": 下的代码只在「直接运行」时执行
+        __name__ 直接运行时是 "__main__"，被 import 时是模块名
+        对比 Java：≈ public static void main(String[] args)，但被 import 时不执行
+  · 类型注解：def greet(name: str) -> str: 只是提示，运行时不强制
+        对比 Java：Java 类型编译期强制；Python 注解靠 mypy 等外部工具检查
+
+ ── ❌ 二、错题 / 踩坑 ─────────────────────────────────────────────
+  （Day 1 无报错记录；环境搭建与 __main__ 验收通过）
+
+
+════════════════════════════════════════════════════════════════════
+ 🗓️  Day 02 — 基础语法（2026-10-12）
+════════════════════════════════════════════════════════════════════
+ 📦 产出物：learning/day02_calculator.py（4 组用例通过）
+
+ ── 💡 一、知识点速记 ─────────────────────────────────────────────
+  · 动态类型：变量没有类型，类型挂在对象上
+        对比 Java：int a=1 变量本身是 int 容器；Python a=1 只是把名字绑到 int 对象，之后可重绑 str
+  · f-string：f"{aa/cc:.2f}" 直接内嵌表达式 + 格式说明符
+        对比 Java：≈ String.format("%.2f", v)，但更短且能内嵌任意表达式
+  · None：唯一空值，用 is None 判断，不用 == None
+        对比 Java：≈ null，但 None 是真实对象（类型 NoneType）
+  · 输入输出：input() 永远返回 str，参与计算前必须 float()/int() 转换
+        对比 Java：≈ Scanner.nextLine() 返回 String，同样要 Integer.parseInt
+  · 真除 vs 整除：/ 永远返回 float，// 才是整除
+        对比 Java：Java 两个 int 用 / 就是整除  ← 最易踩的惯性坑
+
+ ── ❌ 二、错题 / 踩坑 ─────────────────────────────────────────────
+ 【M-02-1】/ 与 // 混淆   #语法
+   现象：7 / 2 期望 3，实际得 3.5
+   错误写法：result = 7 / 2
+   根因：把 Java「两个 int 相除即整除」的心智模型搬到了 Python
+   正解：7 // 2 == 3（整除）；7 / 2 == 3.5（真除）
+   Java 对照：Java 7/2==3（int 截断）、7.0/2==3.5；Python 的 / 与操作数类型无关，永远真除
+   复发：—（已复述通过）
+
+
+════════════════════════════════════════════════════════════════════
+ 🗓️  Day 03 — 容器（2026-10-13）
+════════════════════════════════════════════════════════════════════
+ 📦 产出物：learning/day03_containers.py（已完成：TODO 1–10 全部跑通；Day 3 验收通过）
+ 📌 状态：Block A（list/tuple/for）、Block B（dict/set）、Block C（推导式/切片/解包）全部完成；
+        当日验收通过（3 题，Q3 经纠正后掌握）
+
+ ── 💡 一、知识点速记 ─────────────────────────────────────────────
+ ◆ Block A — list / tuple / for
+  · list：有序、可变、可重复、可混装任意类型（无需泛型）
+        负索引 nums[-1] = 最后一个；切片 nums[1:3] 含头不含尾（Java 要 subList）
+        对比 Java：list ≈ ArrayList<Object>，但 Python 没有「定长数组」概念
+  · tuple：不可变序列；(5,) 才是单元素元组，(5) 只是数字
+        可哈希规则：list 可变→不可哈希→不能当 dict key；tuple 不可变→可哈希→可以
+        对比 Java：无直接对应，最近似 List.of() / 匿名 record
+  · 解包：x, y = point；return a, b 本质返回一个 tuple（Python 天然多返回值）
+  · for 心智模型：for item in iterable ≈ Java for-each（迭代机制相同），差异两点
+        1) Python 没有 C 风格 for(i=0;i<n;i++)，要下标用 range(n)
+        2) 循环变量循环结束后仍然存活；Java 循环变量出作用域即失效
+        for name, score in students: 遍历「元组列表」时直接解包
+  · 执行模型：Python 先整篇编译再执行 → 语法错误会挡住后面的运行期错误，只报第一个错
+
+ ◆ Block B — dict / set
+  · dict：d[k] 取不到抛 KeyError；d.get(k, default) 才安全；"k" in d 判 key；保持插入顺序
+        对比 Java：≈ HashMap，但 Java get 取不到返回 null（不报错）  ← 最大惯性坑
+        dict(二元组列表) 可直接转换；for k, v in d.items() 遍历（≈ entrySet()）
+        key 必须可哈希：str/int/tuple 可以，list 不行
+  · set：自动去重、元素必须可哈希；| & - 有独立运算符（Java 只能调 addAll/retainAll/removeAll）
+        ⚠ {} 是「空 dict」，空集合必须写 set()
+        set 无序：顺序由哈希决定、跨进程还会变（CPython 对 str 默认哈希随机化）
+        → 要顺序别用 set，用 list / dict
+
+ ◆ Block C — 切片 / 推导式 / 解包
+  · 切片 seq[start:stop:step]：含头不含尾；s[::-1] 反转、s[::2] 隔一个取
+        对比 Java：Java 无切片语法，最接近 subList；
+        但 subList 是视图（改它会改原 list），Python 切片是新对象（拷贝）  ← 关键差异
+  · 推导式：[表达式 for x in 可迭代 if 条件]；字典 {k: v for ...}；集合 {x for ...}
+        对比 Java：≈ Stream 的 filter/map/collect，但 Python 一行搞定
+        列表推导式立即求值；要惰性用生成器表达式 (x for ...)
+  · 解包：first, *rest = seq（* 把剩余收成一个 list）；a, b = b, a 交换无需临时变量
+        对比 Java：无多重赋值/星号解包，交换必须用 temp
+
+ ── ❌ 二、错题 / 踩坑 ─────────────────────────────────────────────
+ 【M-03-1】格式说明符不能脱离 f-string 使用   #语法
+   现象：print(total/len(students):.2f) → SyntaxError: invalid decimal literal
+   错误写法：print(total/len(students):.2f)
+   根因：.2f 是 f-string 内部的格式说明符，只能写在 {} 冒号之后，不是独立表达式语法
+   正解：print(f"{total/len(students):.2f}")
+   Java 对照：≈ System.out.printf("%.2f%n", avg)；Java 格式串与参数是分开两部分，
+        Python 是「表达式 + 格式说明符」一起塞进 {}
+   复发：—
+
+ 【M-03-2】累加变量未初始化   #语法
+   现象：NameError: name 'total' is not defined
+   错误写法：循环里直接 total += score，循环前没有 total = 0
+   根因：+= 会先读取 total 再赋值；Python 没有「声明即可用」，读未赋值的名字就报 NameError
+   正解：循环前先 total = 0
+   Java 对照：Java 编译期就报「可能未初始化」；Python 运行期才报，异常类型是 NameError
+   复发：—
+
+ 【M-03-3】把 f-string 当类型转换用   #语义 #易复发
+   现象：total += f"{score}" → TypeError: unsupported operand type(s) for +=: 'int' and 'str'
+   根因：f-string 是「排版出字符串」，不是类型转换；f"{88}" 得到 "88"(str)，int+str 直接报错
+   正解：total += score；真要转类型用 int() / float() / str()
+   Java 对照：Java s + 88 会隐式转字符串；Python 不做隐式转换，int+str 一律 TypeError
+   复发：—
+
+ 【M-03-4】括号不配对   #语法
+   现象：print(score_map.get("赵七", 0))) → SyntaxError: unmatched ')'
+   错误写法：多打一个右括号
+   根因：print( 一层、get( 一层，只需 2 个 )；第 3 个无处配对
+   正解：print(score_map.get("赵七", 0))
+   Java 对照：语法错误同样编译期报错；要点是「括号/引号必须成对」，
+        且 SyntaxError 会挡住整文件执行（呼应 M-03-1）
+   复发：—
+
+ 【M-03-5】变量名拼写错误   #语法
+   现象：print(sccres[::-1]) → NameError: name 'sccres' is not defined. Did you mean: 'score'?
+        前面已打印的正常输出保留，跑到那行才崩
+   根因：Python 没有「声明」，名字必须先赋值存在；拼错的名字从未绑定 → NameError
+   正解：print(scores[::-1])
+   Java 对照：Java 拼错是编译期错误、整份不编译；Python 运行期才报，前面输出保留
+        → SyntaxError（全不跑）vs NameError（跑到那行才崩）的分水岭
+   复发：—
+
+ 【M-03-6】误解「list 不能当 key」的原因   #概念
+   现象（验收 Q3 答错）：答成「list 可变→可能重复→违反 set 去重」，把「哈希」与「去重」混为一谈
+   根因：真正原因是 list 不可哈希（unhashable），与「是否会重复」无关；
+        Python 对可变容器故意不提供 __hash__  →  hash([1,2]) 报 TypeError
+        为什么可变就不能哈希：当 key 后内容一变 → 哈希也变 → 找不回该 key，哈希结构损坏
+   正解：用 tuple（不可变→可哈希）：d[("张三", 88)] 合法；可变容器一律不行
+   Java 对照：Java 不禁止可变对象当 key（编译期不管），只有运行时 hashCode 变了才 get 不到；
+        Python 在语言层面直接把可变容器设为不可哈希
+   复述（2026-10-13，已掌握）：答「list 可变 → 不可哈希；tuple 不可变 → 可哈希」✅
+   复发：—
+
+
+════════════════════════════════════════════════════════════════════
+ 🗓️  Day 04 — 控制流与函数（2026-10-14）
+════════════════════════════════════════════════════════════════════
+ 📦 产出物：learning/day04_functions.py、learning/day04_demo.py（导师示范）
+ ✅ 状态：Block A 控制流 5 点 + Block B 函数 5 点（⑥⑦⑧⑨⑩）全部完成；Day 4 验收通过
+
+ ── 💡 一、知识点速记 ─────────────────────────────────────────────
+ ◆ Block A — 控制流（5 点）
+  · if / elif / else：条件不加括号，行尾 : + 缩进分层；elif 是一个词（不是 else if）
+        对比 Java：Java 要 if (a > b) { }；Python 靠「冒号 + 缩进」，多分支链用 elif
+        命中第一个真分支后其余分支全部跳过（更易漏判边界：>= 90 在前、>= 60 在后）
+  · 真值判断 truthiness（验收考点）：一句话记法「空 / 零 / 无」为假
+        数值看「是否为 0」（0、0.0 为假）；空容器看「长度是否为 0」
+        （[]、{}、()、set()、"" 为假；注意 [] 的值不是数字 0）
+        None / False 为假是语言特殊规定
+        ⚠ if x:  ≠  if x is not None:
+        前者连 0 / 空串 / 空容器一起判假；后者只判「是不是 None 这个对象」
+        → 业务上要区分「值为空」与「值未提供」时必须用 is None / is not None
+  · is vs ==（Java 工程师高危混淆点，与 Java 正好对调）
+        Python：is 比身份（是不是同一个对象，比 id()）；== 比值（调 __eq__）
+        Java：== 比引用；.equals() 比值  →  两者语义正好对调
+        None 是单例，判定必须用 is None（PEP8 规定），不要用 == None
+  · 三元表达式：X if 条件 else Y —— 结果在前、条件在后（Java 是 条件 ? X : Y，顺序相反）
+        它是表达式（有值、能直接赋值 / 塞进 print），不是语句
+  · for...else：循环没被 break 才执行 else —— 是「没走 break 的收尾分支」，不是「循环结束分支」
+        对比 Java：要手写 flag（boolean found=false; ...; if(!found) ...）；Python 一步到位
+        用途：查找 / 质数判断（遍历完都没命中 → else 报「没找到」）
+  · dict 派发替代 switch：commands.get(name) 查表 + is not None 判默认分支
+        前提：函数是一等对象 —— abs 是函数对象本身，abs(-5) 才是调用
+        （可存进 dict、当参数传、当返回值）
+        对比 Java：Java 没有一等函数（要 interface + 匿名类 / 方法引用）
+        项目关联：Day 18 的 tools/ 工具注册表就是这个模式的放大版
+
+ ◆ Block B — 函数（5 点：⑥⑦⑧⑨⑩）
+  · ⑥ def / return / 多返回值
+        def 名(参数): 无括号条件、无返回类型声明；用 return 返回值
+        不写 return（或只写 return）返回 None —— Python 没有 void，任何函数都有返回值
+        多返回值：return a, b 本质是返回一个 tuple，调用侧解包 avg, top = stats(nums)
+        无重载：同名 def 后一个覆盖前一个
+        卫语句 early return：边界先 if not nums: return None, None 提前返回
+        对比 Java：≈ 方法，四点差异「返回值可选、天然多返回值、无 void、无重载」
+  · ⑦ 参数与默认值（可变默认参数陷阱，⭐ 今日核心验收点）
+        默认值只在 def 执行时求值一次，之后每次调用复用同一个对象（存在 f.__defaults__）
+        默认值若为可变对象（list / dict / set）→ 多次调用共享、互相污染
+        （log_bad 第二次变 ['a', 'b']）
+        规避 = 默认值用 None 占位，函数体开头 if x is None: x = []
+        （不是「把默认值换成不可变类型」）
+        对比 Java：Python 默认参数 ≈ static final 字段（定义时初始化一次、长期复用）；
+        Java 无默认参数，靠重载
+  · ⑧ *args / **kwargs
+        同一个 * / ** ：定义侧收集、调用侧展开
+        定义：*args → tuple；**kwargs → dict
+        顺序：普通参数 → 默认参数 → *args → **kwargs
+        调用：f(*seq) 展开成位置参数；f(**d) 展开成关键字参数
+        对比 Java：String... ≈ *args（但 Java 收成数组）；**kwargs Java 无对应（要手传 Map）
+  · ⑨ 作用域 LEGB
+        查找顺序 L 局部 → E 外层 → G 全局 → B 内置
+        核心规则：函数内一旦对某名字赋值，它就默认是局部名
+        → counter = counter + 1 读全局会 UnboundLocalError
+        改全局用 global；改外层闭包用 nonlocal
+        闭包会「记住」外层变量（make_counter 累加 1 → 2）
+        对比 Java：Java 方法内可读字段、靠声明区分局部/字段，无此坑；
+        Python 有嵌套函数 → 多出 E 层
+  · ⑩ lambda
+        lambda 参数: 表达式 —— 只能一个表达式，表达式的值就是返回值
+        用途：一次性回调 / 排序键 → sorted(key=lambda x: -x)、map、filter、max(key=...)
+        对比 Java：≈ Java 8 lambda（x -> x*2），但 Java 可写块 {}，Python 只能一个表达式
+  · 横向坑（打印型 vs 返回型函数）
+        只 print、无 return 的函数返回 None；直接调用它，别再套一层 print
+        （否则多打一行 None）—— 见错题 M-04-3
+
+ ── ❌ 二、错题 / 踩坑 ─────────────────────────────────────────────
+ 【M-04-1】用 if 过滤代替打印布尔结果   #思维 #易复发
+   现象：TODO ②-B 要求「逐行打印每个值的 is not None 布尔结果」，
+        写成 if value is not None: 再打印 value 本身 → None 那行没被打印，
+        7 行变 6 行，A/B 两列无法逐行对比
+   错误写法：
+        for label, value in cases:
+            if value is not None:
+                print(f"{label:10}is_not_None={value}")
+   根因：把「判断条件」当成了「输出结果」。要观察一个条件的分布，就该打印布尔表达式本身，
+        而不是用 if 把它过滤掉 —— if 会把所有「假」的反例丢掉，而反例恰恰是对比的关键
+   正解：
+        for label, value in cases:
+            print(f"{label:10}is_not_None={value is not None}")   # 7 行全打印，True/False 直接可比
+   Java 对照：System.out.println(list != null) 同样是把布尔表达式打出来；
+        注意 f-string 不是类型转换（呼应 M-03-3），但渲染布尔为 True/False 正是它的本职
+   复发：—
+   导师侧改进：题面原写 is_not_None=<值 is not None> 易被读成「打印值」，已改为完整示例
+
+ 【M-04-2】把「空容器判假」的原因说成「空值为 0」   #概念
+   现象：②-B 验收答「空列表、零、空字典、空字符串…空值为 0 所以 false」—— 结论对，机制说错
+   根因：判假机制分两类，混成了一类：
+        1) 数值 / 空串：0、0.0、"" —— 本身就是「零 / 空」这个值
+        2) 空容器：[]、{}、()、set() —— 判假靠「长度」：len(obj) == 0
+           （即容器的 __len__ 返回 0）；注意 [] 的值不是数字 0
+        3) None / False —— 语言特殊规定
+   正解：一句话记法「空 / 零 / 无」为假；容器看长度是否为 0，数值看是否为 0
+   Java 对照：Java 没有这层统一机制（bool 只能来自 boolean 表达式）；
+        最接近的是手写 isEmpty() / size() == 0
+   复发：—
+
+ 【M-04-3】把「只 print 的函数」再包一层 print → 多打一行 None   #习惯 #易复发
+   现象：⑧-B 写 print(profile("张三", age=18, city="北京"))，输出多出一行 None
+   错误写法：print(profile(...)) —— profile 内部已 print，且没有 return（返回 None）
+   根因：函数职责没分清。profile 是「打印型（副作用）」函数，它不产出值；
+        外层再 print(...)，就把它返回的 None 也打了出来
+   正解：只打印的函数直接调用 profile(...)；只有「返回型」函数才写 print(函数(...))
+        口诀：这函数是「打印」还是「返回」？
+   Java 对照：Java void 方法塞进 System.out.println(voidMethod()) 编译期直接报错；
+        Python 因为一切皆有返回值（None），写错不报错 —— 更隐蔽
+   复发：—（与 ⑥-B 的 print(r) == None 属同一认知点：先判断函数有没有返回值）
+
+ 【M-04-4】for...else 的 else 条件遗漏「没被 break」   #概念
+   现象：Day 4 总验收 Q1 答「for 完整循环结束后」才走 else —— 漏掉最关键的条件「没有 break」
+   根因：把 for...else 当成了「循环结束分支」。它实际是「没走 break 的收尾分支」：
+        只要中途 break 过，else 就不执行（哪怕循环确实『结束』了）
+   正解：一句话 —— 循环没有被 break，才执行 else
+        用途：查找 / 质数判断这类「遍历完都没命中」的分支
+   Java 对照：Java 没有 for...else，要手写 flag：
+        boolean found=false; for(...){ if(...){found=true;break;} } if(!found){...}
+        —— Python 用 else 一步到位
+   复发：—

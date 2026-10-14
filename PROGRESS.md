@@ -3,7 +3,7 @@
 > 本文件是学习进度的**唯一事实源**。每次会话开始时由导师（AI）读取，结束时由导师更新。
 > 你在不同会话里学习时，只要让导师先读本文件，就能自动续接进度。
 > 计划详情见 `LEARNING_PLAN.md`。
-> 知识点速记 + 错题本见 `NOTES.md`（每日收尾追加）。
+> 知识点速记 + 错题本见 `NOTES.txt`（每日收尾追加）。
 
 ## 协作约定（导师必读 —— 2026-10-14 学员明确要求，违反即视为流程错误）
 
@@ -23,12 +23,12 @@
 - 开始日期：2026-10-10
 
 ## 当前进度
-- **当前 Day：4（进行中；Day 3 已完成）**
+- **当前 Day：5（未开始；Day 4 已完成）**
 - **当前里程碑：M1（可运行版）**
-- 上次会话（2026-10-14，Day 4）：Block A（控制流 5 点）**全部讲完并通过验收**；Block B 知识点⑥（`def`/`return`/多返回值）**已讲解、练习待做**；⑦参数与默认值（可变默认参数陷阱）、⑧`*args/**kwargs`、⑨作用域 LEGB、⑩lambda **未讲**
-- **恢复点（新机器从这里起）**：Day 4 Block B → 从 **`learning/day04_functions.py` 末尾的 `TODO ⑥-A` / `TODO ⑥-B`** 继续（写 `stats()` 与 `describe()` 两个函数）
-- 下一步：⑥ 练习 → ⑦ 可变默认参数陷阱 → ⑧`*args/**kwargs` → ⑨作用域 → ⑩lambda → Day 4 验收
-- ⚠️ Day 4 **未完成**，禁止推进到 Day 5
+- 上次会话（2026-10-14，Day 4）：**Day 4 全部完成并通过验收**——Block A 控制流 5 点 + Block B 函数 5 点（⑥`def`/return/多返回值、⑦可变默认参数陷阱★、⑧`*args/**kwargs`、⑨作用域 LEGB、⑩lambda）全部讲完、练习跑通
+- **恢复点（新机器从这里起）**：Day 4 已完成 → 从 **Day 5（面向对象）** 开始
+- 下一步：Day 5 — 面向对象（class / `self` / 继承 / `@dataclass` / 魔术方法）；产出物 = 一个数据模型类；验收 = 能对比 Java 类与 Python 类
+- ✅ `learning/day04_functions.py` 已全量跑通（`uv run python learning/day04_functions.py`）
 
 ## 环境信息
 - Python 版本：3.12.15（uv 托管，项目锁定 3.12）
@@ -46,7 +46,7 @@
 ## 配套文件
 - `LEARNING_PLAN.md`：6 周 42 天计划、验收标准
 - `WORKFLOW.md`：每日协作 SOP
-- `NOTES.md`：知识点速记 + 错题本（追加式，每日收尾更新；每周复盘日抽题复习）
+- `NOTES.txt`：知识点速记 + 错题本（追加式，每日收尾更新；每周复盘日抽题复习）
 
 ## 进度总表
 
@@ -59,7 +59,7 @@
 | 1 | 环境搭建（uv）、REPL、`__main__`、Python vs Java | 已完成 | `learning/day01_demo.py`；骨架 `src/agentic_rag/` | 验收通过 |
 | 2 | 基础语法（动态类型 / f-string / None） | 已完成 | `learning/day02_calculator.py` | 4 组用例通过；已纠正 `/` 与 `//` |
 | 3 | 容器（list/dict/set、推导式、切片、解包） | 已完成 | `learning/day03_containers.py`（TODO 1–10 全部跑通） | 验收通过；已纠正 M-03-4/5/6 |
-| 4 | 控制流与函数（默认参数、`*args/**kwargs`、lambda） | 进行中 | `learning/day04_functions.py`、`learning/day04_demo.py`（导师示范） | Block A 5/5 完成并通过验收；Block B ⑥ 已讲待练（⑦⑧⑨⑩ 未讲）；错题 M-04-1/2 |
+| 4 | 控制流与函数（默认参数、`*args/**kwargs`、lambda） | 已完成 | `learning/day04_functions.py`、`learning/day04_demo.py`（导师示范） | Block A 5/5 + Block B 5/5（⑥⑦⑧⑨⑩）全部完成并跑通；Day 4 验收通过；错题 M-04-1/2/3/4 |
 | 5 | 面向对象（class、`self`、`@dataclass`、魔术方法） | 未开始 | | |
 | 6 | 模块/包/依赖管理/类型注解/异常 | 未开始 | | |
 | 7 | 复盘：CLI 小工具 + pytest 入门 | 未开始 | | |
@@ -147,16 +147,17 @@
 - [ ] README + architecture.md + 面试问答整理完成
 
 ## 遗留问题 / 待办
-- **Day 4 未完成**：Block A 5/5 已完成并通过验收；Block B 知识点⑥ 已讲解、**练习待做**（`day04_functions.py` 末尾 `TODO ⑥-A`/`⑥-B`）；⑦可变默认参数陷阱、⑧`*args/**kwargs`、⑨作用域 LEGB、⑩lambda **未讲**
+- ✅ **Day 4 已完成**：Block A 5/5 + Block B 5/5（⑥⑦⑧⑨⑩）全部跑通；验收通过
 - ✅ **环境已复核（2026-10-14 本机）**：uv 0.13.1 / `uv run python` 3.12.15 / `.venv` 存在（详见「环境信息」）
-- **待复习错题**：M-04-1（用 `if` 过滤代替打印布尔结果）、M-04-2（空容器判假的原因说成「空值为 0」）；M-03-3（f-string 当类型转换）、M-03-4（括号不配对）、M-03-5（变量名拼错）；M-03-1/2/6 已掌握
-- **Day 4 验收待考**：可变默认参数陷阱（⑦，今日核心）——学员需能**解释**并演示「默认参数只在定义时求值一次」导致的共享副作用
+- **待复习错题**：M-04-1（`if` 过滤代替打印布尔结果）、M-04-2（空容器判假说成「空值为 0」）、M-04-3（只 print 的函数再套一层 print → 多打 `None`）、**M-04-4（`for...else` 条件漏掉「没被 break」）**；M-03-3/4/5；M-03-1/2/6 已掌握
+- **Day 4 验收结论**：通过。核心考点 ⑦（可变默认参数陷阱）学员已能**解释**（默认值定义时求值一次 → 共享副作用）并**演示**（`log_bad` 第二次 `['a','b']`）。Q1（`for...else` 条件）、Q3（`args`=tuple / `kwargs`=dict 未答全）、Q4（规避说法不精确）为回忆偏差，已纠正／记错题
+- **Day 5 预告**：面向对象（class / `self` / 继承 / `@dataclass` / 魔术方法）；产出物 = 一个数据模型类
 - 跨机器续接：已用 git 提交推送；新机器先 `git pull` → `uv sync` → 读 `PROGRESS.md` 的「恢复点」继续
 
 ## 会话日志
 | 日期 | Day | 完成内容 | 笔记 | 下一步 |
 |---|---|---|---|---|
-| 2026-10-10 | 1 | uv 0.12.24 + Python 3.12.15 环境搭建；`src/agentic_rag/` 骨架；`__main__` 与 Java 心智模型验收通过 | `NOTES.md` → Day 01 | Day 2 |
-| 2026-10-12 | 2 | 基础语法（数值/字符串/f-string/None/IO）；完成 `day02_calculator.py`，4 组用例通过 | `NOTES.md` → Day 02（含错题 M-02-1） | Day 3 |
-| 2026-10-13 | 3 | Block A（list/tuple/for）由上一会话完成；本次补齐 **Block B（dict/set）+ Block C（推导式/切片/解包）**，`day03_containers.py` TODO 1–10 全部跑通，Day 3 验收通过 | `NOTES.md` → Day 03（错题 M-03-1/2/3/4/5/6） | Day 4 |
-| 2026-10-14 | 4 | 修复本机环境（装 uv 0.13.1 + `uv sync` 建 `.venv`）；**Block A 控制流 5 点全部讲完并验收**（if/elif/else、真值判断、三元、`for...else`、dict 派发）；**Block B ⑥ `def`/`return`/多返回值已讲、练习待做**；固化「先讲后练 + 分 Block + TODO 最后落盘」协作约定 | `NOTES.md` → Day 04（速记 + 错题 M-04-1/2） | Day 4 续：Block B ⑥ 练习 → ⑦⑧⑨⑩ |
+| 2026-10-10 | 1 | uv 0.12.24 + Python 3.12.15 环境搭建；`src/agentic_rag/` 骨架；`__main__` 与 Java 心智模型验收通过 | `NOTES.txt` → Day 01 | Day 2 |
+| 2026-10-12 | 2 | 基础语法（数值/字符串/f-string/None/IO）；完成 `day02_calculator.py`，4 组用例通过 | `NOTES.txt` → Day 02（含错题 M-02-1） | Day 3 |
+| 2026-10-13 | 3 | Block A（list/tuple/for）由上一会话完成；本次补齐 **Block B（dict/set）+ Block C（推导式/切片/解包）**，`day03_containers.py` TODO 1–10 全部跑通，Day 3 验收通过 | `NOTES.txt` → Day 03（错题 M-03-1/2/3/4/5/6） | Day 4 |
+| 2026-10-14 | 4 | 修复本机环境（装 uv 0.13.1 + `uv sync` 建 `.venv`）；Block A 控制流 5/5 讲完并验收；**Block B 函数 5/5（⑥`def`/return/多返回值、⑦可变默认参数陷阱、⑧`*args/**kwargs`、⑨作用域 LEGB、⑩lambda）全部讲完、练习跑通、Day 4 验收通过**；固化「先讲后练 + 分 Block + TODO 最后落盘」协作约定 | `NOTES.txt` → Day 04（速记 + 错题 M-04-1/2/3/4） | Day 5：面向对象 |
