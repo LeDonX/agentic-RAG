@@ -14,6 +14,7 @@
    - ③ **最后**才把 TODO 写进 `learning/` 文件 —— **禁止提前落盘**（否则学员编辑器先看到题目 = 「先练后讲」）
 3. 一次会话聚焦一天；一个知识点一轮。
 4. **展示格式：分 Block**。每天首次输出展示**全部 Block**（含每个 Block 的知识点清单）；之后每条消息**只展示当前 Block**，不重复其他 Block。
+5. **示例代码不落盘**：导师讲解时给的「最小示例 / 示范演示」**只在对话里用代码块展示，不写成项目文件**（项目里只保留学员的练习文件与亲手写的 TODO）。
 
 ## 项目信息
 - 项目：企业级知识库问答 Agentic RAG（产品形态对标 RAGFlow，生产化对标 bisheng，编排用 LangGraph）
@@ -56,10 +57,10 @@
 
 | Day | 主题 | 状态 | 产出物 | 备注 |
 |---|---|---|---|---|
-| 1 | 环境搭建（uv）、REPL、`__main__`、Python vs Java | 已完成 | `learning/day01_demo.py`；骨架 `src/agentic_rag/` | 验收通过 |
+| 1 | 环境搭建（uv）、REPL、`__main__`、Python vs Java | 已完成 | `learning/day01_indent.py`；骨架 `src/agentic_rag/` | 验收通过 |
 | 2 | 基础语法（动态类型 / f-string / None） | 已完成 | `learning/day02_calculator.py` | 4 组用例通过；已纠正 `/` 与 `//` |
 | 3 | 容器（list/dict/set、推导式、切片、解包） | 已完成 | `learning/day03_containers.py`（TODO 1–10 全部跑通） | 验收通过；已纠正 M-03-4/5/6 |
-| 4 | 控制流与函数（默认参数、`*args/**kwargs`、lambda） | 已完成 | `learning/day04_functions.py`、`learning/day04_demo.py`（导师示范） | Block A 5/5 + Block B 5/5（⑥⑦⑧⑨⑩）全部完成并跑通；Day 4 验收通过；错题 M-04-1/2/3/4 |
+| 4 | 控制流与函数（默认参数、`*args/**kwargs`、lambda） | 已完成 | `learning/day04_functions.py` | Block A 5/5 + Block B 5/5（⑥⑦⑧⑨⑩）全部完成并跑通；Day 4 验收通过；错题 M-04-1/2/3/4 |
 | 5 | 面向对象（class、`self`、`@dataclass`、魔术方法） | 未开始 | | |
 | 6 | 模块/包/依赖管理/类型注解/异常 | 未开始 | | |
 | 7 | 复盘：CLI 小工具 + pytest 入门 | 未开始 | | |
