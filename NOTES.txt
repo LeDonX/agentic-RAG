@@ -26,6 +26,12 @@
   🔁 M-04-2  Day4  把「空容器判假」的原因说成「空值为 0」（实为长度 0）
   ☐ M-04-3  Day4  把「只 print 的函数」再包一层 print → 多打一行 None
   ☐ M-04-4  Day4  for...else 的 else 条件误答成「完整循环结束后」
+  ☐ M-05-1  Day5  把 Python 默认打印说成「就是 Java 里的地址」
+  ☐ M-05-2  Day5  不知道「实例化为什么不需要 new」/ 类实为一等对象
+  ☐ M-05-3  Day5  不知道「为什么能先建对象再挂字段」（实例属性存于 __dict__）
+  ☐ M-05-4  Day5  演示「删掉 self.」时抓错报错类型（少传参数的 TypeError ≠ 缺 self. 的 AttributeError）
+  ☐ M-05-5  Day5  连续两次漏写 TODO 明确要求的类 docstring（未逐条对题）
+  ☐ M-05-6  Day5  术语把「可变参数」与「可变默认值」混用；且未答默认值只求值一次的根因
 
   规则：同一根因再次踩坑不新增条目，只在原条目追加「复发：Day XX」并把计数 +1。
 
@@ -296,4 +302,96 @@
    Java 对照：Java 没有 for...else，要手写 flag：
         boolean found=false; for(...){ if(...){found=true;break;} } if(!found){...}
         —— Python 用 else 一步到位
+   复发：—
+
+
+════════════════════════════════════════════════════════════════════
+ 🗓️  Day 05 — 面向对象（2026-10-15）
+════════════════════════════════════════════════════════════════════
+ 📦 产出物：learning/day05_oop.py
+ 📌 状态：Block A ①（class 与实例化）✅ 验收通过（错题 M-05-1/2/3）；②（self 与 __init__）✅ 验收通过（错题 M-05-4/5/6）；③（实例属性 vs 类属性）已讲、TODO 已落盘、待练习
+
+ ── ❌ 二、错题 / 踩坑（即时记录） ──────────────────────────────────
+ 【M-05-1】把 Python 默认打印说成「就是 Java 里的地址」   #概念 #易复发
+   现象：TODO ① 的 Q2 答「应该类似 java 中打印的是地址」，把两边的默认输出等同了
+   根因：两边默认输出的生成机制不同，只记「地址」会把细节记错：
+        · Python 默认走 object.__repr__ → "<模块名.类名 object at 0x十六进制>"
+          CPython 里该值恰为 id(obj)（内存地址），但这是实现细节、语言不保证，不可依赖
+        · Java 默认走 Object.toString() → "全限定类名@hashCode 的十六进制"
+          hashCode 不是地址（且可被重写），只有默认实现才近似地址
+        · 两边真正要记的共性是：默认输出都不含字段值 → 想看内容必须重写
+          Python 重写 __repr__/__str__（见 Block B ⑨）；Java 重写 toString()
+   正解：Python 是「模块名 + 类名 + object + id 的十六进制」；Java 是「类名 + hashCode 的十六进制」
+   Java 对照：Java 不重写 toString 也看不到字段，所以也一定要重写；机制不同、结论相同
+   复发：—
+   旁注：TODO ① 漏写类 docstring、pass 后遗留行尾空格（ruff W293，Day 25 遇）—— 非错题，仅提醒
+
+ 【M-05-2】不知道「实例化为什么没有 new」/ 类本身是一等对象   #概念
+   现象：① 的验收 Q1 直接答「不知道」
+   根因：把 Java「new 是关键字/运算符」的心智直接搬过来，
+        没建立「在 Python 里类名绑定的就是一个普通对象」的模型
+   正解：class 语句执行后，类名 `Document` 绑定到一个 type 对象（`type(Document)` 是 type）
+        `Document()` = 调用这个对象 → type.__call__ → `Document.__new__(Document)` 造空实例
+        → `Document.__init__(新实例, ...)` 初始化 → 返回实例
+        「创建实例」在 Python 里就是**一次普通调用**，所以没有 new 关键字
+        证据：`callable(Document)` → True；`maker = Document; maker(...)` 也能造实例（可当值传递）
+   Java 对照：Java 的 new 是语言运算符（编译期生成 new/dup/invokespecial 指令）；
+        Java 也有 Class 对象，但不能 `Document()` 这样「调用类」来造实例（只能 new / 反射 newInstance）
+   复发：—
+
+ 【M-05-3】不知道「为什么 Python 能先建对象、再挂字段」   #概念
+   现象：① 的验收 Q2 前半答对（会报 AttributeError、属性不存在），
+        被追问「为什么 Python 允许、Java 不允许」时答不出
+   根因：没意识到「实例属性」与「Java 字段」的存储和声明机制完全不同
+   正解：Python 实例属性存在**实例自己的字典** __dict__ 里，运行期读写：
+        d1.__dict__ == {'doc_id': ..., 'text': ...}（打印可见），
+        而 `"doc_id" in Document.__dict__` 为 False —— 类上并没有这个名字，名字只在实例字典里
+        属性查找顺序：先实例 __dict__ → 再类及 MRO 的 __dict__（⑨/⑦ 会再展开）
+        → 所以「赋值即声明」：没有声明期，写 `d1.doc_id = ...` 就是在实例字典里加了一个键
+        代价：字段「隐形」→ 拼错属性名不报错、IDE 无法提示、看类定义不知道有哪些字段
+        → 出路就是 Block B ⑧ 用 @dataclass / 类型注解把字段**显式声明**出来
+   Java 对照：Java 静态类型 + 对象布局编译期定死（字段表在 class 文件里），
+        没声明的名字编译报 cannot find symbol；Python 动态类型 + 字典存储，运行期才查
+   复发：—
+
+ 【M-05-4】演示「删掉 self.」时抓错了报错类型   #概念 #易复发
+   现象：TODO ② 第 4 项删了 self.（doc_id = doc_id），但调用写成 `Document2()` 一个参数都没传，
+        抄下的报错是 `TypeError: Document2.__init__() missing 2 required positional arguments: 'doc_id' and 'text'`
+        —— 那是「少传参数」的坑，不是「少写 self.」的坑；该行还让整个脚本 exit=1 崩在中途
+   根因：两种错误的归属混了，且没抓住「后果链」的差别：
+        · 少写 self.  → 属性从未写进实例 __dict__ → **实例化不报错**，只有访问属性时才 AttributeError
+        · 少传参数    → 调用期参数个数不符 → 实例化当场 TypeError
+        → 删 self. 的后果是「延迟报错（不报错 ≠ 正确）」，必须靠「访问」才显现
+   正解：
+        class Doc2:
+            def __init__(self, doc_id, text):
+                doc_id = doc_id        # 少了 self.：只是个局部变量，属性没挂上
+                self.text = text
+        d = Doc2("doc-001", "hello")   # ✅ 实例化成功、不报错
+        print(d.doc_id)                # ❌ AttributeError: 'Doc2' object has no attribute 'doc_id'
+   Java 对照：Java 里 this.field = field 少写 this 只是给形参赋值，
+        但字段声明仍在 → d.field 照样读到默认值、**不报错**（只是值不对）；
+        Python 连「字段是否存在」都依赖那行 self.x = ... → 直接 AttributeError。症状不同，别类比错
+   复发：—
+   导师侧提醒：故意报错的演示必须隔离（单独文件 / 放脚本最后 / 临时注释），否则脚本中断、后面验证全废
+
+ 【M-05-5】连续两次漏写 TODO 明确要求的类 docstring   #习惯
+   现象：① 与 ② 的 TODO 都写了「类补一行 docstring」，两次都没写
+   根因：动手前没有逐条对题，把 TODO 当成「提示」读，没当「验收清单」用
+   正解：每写完一项，拿 TODO 逐条打勾；类 / 模块 / 公开函数都应有 docstring
+   Java 对照：≈ 类的 Javadoc；Python 用 """...""" 三引号文档字符串，运行时还可用 help() / 类.__doc__ 取到
+   复发：Day 5 连续 2 次
+
+ 【M-05-6】术语混用「可变参数」；未答默认值只求值一次的根因   #概念 #术语
+   现象：② 验收 Q2 答「解决了可变参数重复使用的问题。第二次创建实例时 metadata 会复用第一次的」
+        —— 结论方向对（去掉占位后确实会复用），但①术语用错 ②根因没说
+   根因：两个「可变」混为一谈；且对「默认值只在 def 执行时求值一次」的机制没有主动说出
+   正解：
+        · 术语区分：*args / **kwargs 是「可变**参数**」（个数可变）；
+          这里说的是「可变**默认值**」（默认值指向的对象内容可变，如 list/dict）—— 两回事
+        · None 占位的目的：让**每个实例拿到各自新建的 dict**（None 是不可变哨兵值 → 天然安全）
+        · 改回 metadata={} 后：d1.metadata is d2.metadata → **True**（同一个 dict）
+          根因：默认值只在 def 执行时求值一次，存进函数对象的 __init__.__defaults__，之后所有调用共享
+          证据：改 b1.metadata 后 b2.metadata 里也出现 page:3（实跑）→ 呼应 Day4 ⑦
+   Java 对照：≈ static final 字段在类加载时初始化一次、长期复用；Java 无默认参数，靠重载规避
    复发：—
