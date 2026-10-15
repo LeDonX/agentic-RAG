@@ -47,6 +47,7 @@
 | 语言 | Python 3.11+ | 目标岗位语言 |
 | 包管理 | **uv**（astral-sh/uv） | 现代、快，替代 pip/venv 手工管理 |
 | 本地模型 | **Ollama** + qwen2.5 | 免费、可离线、面试可演示 |
+| 云端兜底 LLM | **DeepSeek** / **通义千问（DashScope）**（OpenAI 兼容接口） | 本地小模型失真时切换；API Key 由学员按需提供，存 `.env`，不进 git |
 | LLM 编排 | **LangChain** + **LangGraph** | 岗位高频，Agent 编排核心 |
 | 向量库 | **Chroma** | 轻量、本地持久化 |
 | 检索 | 向量 + BM25（rank_bm25）+ cross-encoder 重排 | 混合检索 |
@@ -100,7 +101,7 @@ python project/
 │   ├── processed/                 # 切分后 chunk
 │   ├── chroma/                    # 向量库
 │   └── eval/
-│       ├── golden_qa.jsonl        # 金标准评测集
+│       ├── golden_qa.jsonl        # 金标准评测集（Day 13 起随手积累，Day 29 规模化分层）
 │       └── feedback/badcases.jsonl
 │
 ├── src/agentic_rag/
@@ -198,12 +199,12 @@ python project/
 
 | Day | 主题 | 参考 | 产出物 | 验收标准 |
 |---|---|---|---|---|
-| 8 | LLM 应用基础（token/prompt/temperature/上下文）；Ollama 安装拉模型 | Ollama 文档 | 本地模型跑通 | `ollama run` 能对话 |
+| 8 | LLM 应用基础（token/prompt/temperature/上下文）；Ollama 安装拉模型；**小模型冒烟测试**（5 题测改写/评分质量，判本地模型够不够用） | Ollama 文档 | 本地模型跑通 + 冒烟测试记录 | `ollama run` 能对话；冒烟测试结论写入 PROGRESS.md（够用 / 需启用 DeepSeek 或 qwen 云端兜底） |
 | 9 | Python 直连 Ollama API，理解 messages 结构 | Ollama API 文档 | 最简聊天脚本 | 能解释 role/content |
 | 10 | LangChain 入门：ChatModel、PromptTemplate、LCEL、输出解析 | langchain 官方文档 | LCEL 链 Demo | 能用管道符串链 |
 | 11 | 文档加载与切分：Document、Loader、RecursiveCharacterTextSplitter | langchain 文档、RAG_Techniques | 文档切分脚本 | 能解释 chunk_size/overlap |
 | 12 | Embedding + Chroma：向量化、持久化、相似度检索 | langchain-chroma 文档 | 可检索的向量库 | 能检索出相关片段 |
-| 13 | 最小 RAG 链：检索 → 拼上下文 → 生成 + 引用来源 | RAG_Techniques | 能问答的 RAG | 回答带来源 |
+| 13 | 最小 RAG 链：检索 → 拼上下文 → 生成 + 引用来源；**从今天起随手积累 `golden_qa.jsonl`**（每解决一个 badcase 就沉淀一条问答对） | RAG_Techniques | 能问答的 RAG + golden_qa 起步（≥5 条） | 回答带来源 |
 | 14 | **复盘**：多轮对话记忆 + 为检索/生成写 pytest | langchain 文档 | 带记忆的 RAG + 测试 | 测试全绿 |
 
 ### Week 3 — LangGraph 编排 + 工具 + Agentic RAG
@@ -234,7 +235,7 @@ python project/
 
 | Day | 主题 | 参考 | 产出物 | 验收标准 |
 |---|---|---|---|---|
-| 29 | 评测基础：构建金标准评测集 | RAGAS 官方指南 | `golden_qa.jsonl` | ≥30 条问答对 |
+| 29 | 评测基础：**规模化**金标准评测集（Day 13 起已随手积累，今天补够并分层） | RAGAS 官方指南 | `golden_qa.jsonl` | **≥50 条**问答对，按「单跳 / 多跳 / 拒答」三类分层（拒答类用于验证低分阈值兜底） |
 | 30 | RAGAS/DeepEval 四指标：faithfulness/answer relevancy/context precision/context recall | deepeval 文档 | 指标脚本 | 能算出 4 个指标 |
 | 31 | 评测 runner + 回归：每次改动跑一遍 | — | `evaluate.py` | 一条命令出报告 |
 | 32 | 可观测：Phoenix/Opik 接入 trace | Phoenix/Opik 文档 | trace 面板 | 能看到检索+生成链路 |
@@ -283,7 +284,7 @@ python project/
 **为什么 6 周可行**
 - 6 年 Java 功底：语言迁移成本低，Week 1 只补「Python 特有」而非通用编程。
 - 每天 2–3 小时 ≈ 每周 14–18 小时，共约 **90–110 小时**，与上述范围匹配。
-- 全程用**本地 Ollama**，零 API 成本、可离线，不阻塞学习。
+- 全程**以本地 Ollama 为主**（零 API 成本、可离线），必要时启用 DeepSeek / 通义千问云端兜底，不阻塞学习。
 
 **主要风险与对策**
 | 风险 | 对策 |
@@ -293,6 +294,20 @@ python project/
 | RAG 效果不稳定 | Week 5 评测先行，用数据驱动调优而非拍脑袋 |
 | MCP / 多 Agent 偏难 | 放在 Week 6，且以「能演示」为目标，不追求生产级 |
 | 参考项目看不懂（RAGFlow 是 Go） | 只看**结构**不抠实现；代码级参考用 LangChain/LangGraph 生态 |
+| **本地小模型（Ollama qwen2.5）能力不足**：查询改写 / 相关性评分 / 反思重试 / 评测打分容易失真 | **Day 8 冒烟测试**（5 题测改写/评分质量）提前暴露；不够用则启用 **DeepSeek / 通义千问** 云端兜底（OpenAI 兼容接口，API Key 由学员提供，存 `.env` 不进 git）；`.env.example` 预留 `LLM_PROVIDER=ollama|deepseek|dashscope` 切换口 |
+
+### 9.1 难点预判清单（提前心里有数，遇到时不慌）
+
+| # | 难点 | 出现日 | 风险 | 对策 |
+|---|---|---|---|---|
+| 1 | chunk_size / overlap 调参 | Day 11 | 中 | 用 golden_qa 做消融对比，不拍脑袋 |
+| 2 | BM25 + 向量融合权重 | Day 27 | 高 | 先用 RRF（免调参），有效果后再考虑加权 |
+| 3 | cross-encoder 重排延迟 | Day 27 | 中 | 只重排 top-k（k≤10），必要时量化 |
+| 4 | 本地小模型做 grade / 反思不可靠 | Day 17/19 | **高** | Day 8 冒烟测试；不足则 DeepSeek / qwen 云端兜底（见上表） |
+| 5 | checkpointer 状态序列化 | Day 20 | 中 | State 只放可序列化字段（str/list/dict） |
+| 6 | supervisor 多 Agent 循环退出条件 | Day 39 | 高 | 设最大迭代次数 + 显式 END 边 |
+| 7 | badcase 归因（检索 / 生成 / 切分） | Day 34 | **高** | 依赖 trace 定位，规则归因 + 人工复核结合 |
+| 8 | MCP 协议调试 | Day 36–37 | 中 | 先接官方 servers 跑通，再自建暴露 |
 
 ---
 
