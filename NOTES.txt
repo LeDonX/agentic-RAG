@@ -29,9 +29,11 @@
   ☐ M-05-1  Day5  把 Python 默认打印说成「就是 Java 里的地址」
   ☐ M-05-2  Day5  不知道「实例化为什么不需要 new」/ 类实为一等对象
   ☐ M-05-3  Day5  不知道「为什么能先建对象再挂字段」（实例属性存于 __dict__）
-  ☐ M-05-4  Day5  演示「删掉 self.」时抓错报错类型（少传参数的 TypeError ≠ 缺 self. 的 AttributeError）
-  ☐ M-05-5  Day5  连续两次漏写 TODO 明确要求的类 docstring（未逐条对题）
+  🔁 M-05-4  Day5  抓错报错归属（少传参数的 TypeError ≠ 缺 self. 的 AttributeError；⑥ 又把崩点与缺失属性说错）→ 计数 2
+  🔁 M-05-5  Day5  漏写 docstring / 照抄提示占位语（未逐条对题）；③④ 已补 4 处，⑥ 内容照抄占位语 → 计数 3
   ☐ M-05-6  Day5  术语把「可变参数」与「可变默认值」混用；且未答默认值只求值一次的根因
+  ☐ M-05-7  Day5  注释漏写 # → SyntaxError（④ 首次 + ⑤ 复发，计数 2）
+  🔁 M-05-8  Day5  装饰器注入机制不透（@classmethod 的 cls；⑥ 无参 super() 机制同为照抄导师答案）→ 计数 2
 
   规则：同一根因再次踩坑不新增条目，只在原条目追加「复发：Day XX」并把计数 +1。
 
@@ -291,7 +293,8 @@
         口诀：这函数是「打印」还是「返回」？
    Java 对照：Java void 方法塞进 System.out.println(voidMethod()) 编译期直接报错；
         Python 因为一切皆有返回值（None），写错不报错 —— 更隐蔽
-   复发：—（与 ⑥-B 的 print(r) == None 属同一认知点：先判断函数有没有返回值）
+   复发：Day 5（④ 第5项要求「调用并打印」，只写裸调用、漏 print → summary/True/False 全看不到）
+        同一认知点、方向相反：上次给打印型函数套了 print（多打 None），这次给返回型函数漏了 print
 
  【M-04-4】for...else 的 else 条件遗漏「没被 break」   #概念
    现象：Day 4 总验收 Q1 答「for 完整循环结束后」才走 else —— 漏掉最关键的条件「没有 break」
@@ -309,7 +312,40 @@
  🗓️  Day 05 — 面向对象（2026-10-15）
 ════════════════════════════════════════════════════════════════════
  📦 产出物：learning/day05_oop.py
- 📌 状态：Block A ①（class 与实例化）✅ 验收通过（错题 M-05-1/2/3）；②（self 与 __init__）✅ 验收通过（错题 M-05-4/5/6）；③（实例属性 vs 类属性）已讲、TODO 已落盘、待练习
+ 📌 状态：Block A ①–⑤ **全部验收通过**（①class 与实例化、②`self` 与 `__init__`、③实例属性 vs 类属性、④三种方法、⑤访问控制）；Block B ⑥（继承与 `super()`）已完成、`exit=0`；⑦⑧⑨⑩ 待续（下次开场从 ⑦ 讲起）
+
+ ── 💡 一、知识点速记 ─────────────────────────────────────────────
+ ◆ Block A — 类的基础（①–⑤）
+  · ① class 与实例化：`class Doc:` + `Doc()` —— **没有 new**；类是**一等对象**（可赋值 / 传参 / 存容器）
+        空类体用 pass；docstring 写在类体第一行（`Doc.__doc__` 取得到）
+        实例化 = 「调用类」：类名加括号即在造对象（≈ 调 __new__ + __init__）
+        未挂的属性一访问 → AttributeError（Java 字段声明即存在，默认 0/null，不会报错）
+  · ② self 与 __init__：__init__ 是**初始化器**，不是 Java 构造器的完整等价物
+        self = 当前实例，作为**第一个形参手动声明**（Java 的 this 是隐式关键字，不用写）
+        `self.x = x` 才把属性写进**实例字典** `__dict__`；漏 self. 只是局部变量 → **延迟报错**（见 M-05-4）
+        默认参数用 None 占位（`metadata=None` → `if metadata is None: metadata = {}`）避开 Day4 ⑦ 可变默认值陷阱
+  · ③ 实例属性 vs 类属性：类属性写在类体里（≈ Java `static`）
+        查找顺序：**实例 __dict__ → 类（及 MRO）__dict__**；实例属性**遮蔽**类属性
+        ⚠ `obj.attr = x` **只写实例字典**；Java `obj.staticField = x` 改的是那个 static 字段本身 ← 语义正好相反
+        可变类属性被实例 append → 全类共享（与 Day4 ⑦ 同一根因）
+  · ④ 三种方法：
+        实例方法 `def f(self)`      —— 调用时自动塞实例；≈ Java 普通方法
+        `@classmethod def f(cls)`   —— 调用时自动塞「调用方的类」；≈ Java 静态工厂（子类调用 → 返回子类实例）
+        `@staticmethod def f(x)`    —— 什么都不塞；≈ Java static 方法
+        装饰器是**语义开关**：删掉 @classmethod → 第一个实参落进 cls、调用直接 TypeError（见 M-05-8）
+  · ⑤ 访问控制：`_x` 只是**约定**（提示「内部用」）；`__x` 在**类体内**被**名字改写**为 `_类名__x`
+        `obj.__x` 在类外 → AttributeError；`obj._类名__x` 照样读得到 → **不是真私有，挡不住任何人**
+        Java 对照：Java private 是编译期硬约束；Python 全靠约定 + 改写，一律可绕过
+ ◆ Block B — 继承与魔术方法（⑥ 已完成；⑦–⑩ 待补）
+  · ⑥ 继承与 super()：`class Sub(Base):` —— 子类自动获得父类的类属性与方法
+        `super().__init__(...)` **必须显式调**，父类属性才挂上；漏调 → 对象仍能造出来，访问父类属性时才崩
+        （崩点常在**子类调用的父类方法**里，不在 __init__ 里 —— 见 M-05-4 复发）
+        重写 + 叠加：子类 summary 里 `super().summary()` 先跑父类的输出，再拼子类前缀（≈ Java `super.method()`）
+        子类类属性同名 → **遮蔽**父类那份，父类 `Document3.category` 不会被改（实跑：`p1.category`=pdf / `Document3.category`=kb）
+        无参 `super()` 为何能省参数：编译期给类体注入隐式变量 `__class__`，
+          super() 用「当前方法的第一个参数（self/cls）+ `__class__`」推出起点 → 它是**沿 MRO 往后找**，不是「找父类」
+        Java 对照：Java `super` 是关键字、编译期静态绑定、只能指直接父类；Java 单继承，Python 支持多继承（⑦）
+
 
  ── ❌ 二、错题 / 踩坑（即时记录） ──────────────────────────────────
  【M-05-1】把 Python 默认打印说成「就是 Java 里的地址」   #概念 #易复发
@@ -372,15 +408,23 @@
    Java 对照：Java 里 this.field = field 少写 this 只是给形参赋值，
         但字段声明仍在 → d.field 照样读到默认值、**不报错**（只是值不对）；
         Python 连「字段是否存在」都依赖那行 self.x = ... → 直接 AttributeError。症状不同，别类比错
-   复发：—
+   复发：Day 5 ⑥ 验收 Q1 —— 又凭直觉断言崩点：「崩在子类的 __init__() 中，缺失 doc_id 和 text」
+        实际 __init__ 正常跑完（p1 造出来了、pages 也挂上了），崩在 p1.summary() → super().summary()
+        → Document3.summary 里访问 self.text 那一下；报的是 text
+        （doc_id 同样没挂上，只是没被访问到 → 不在报错里）→ 计数 2
+        同轮作业要求「抄完整报错」却只抄了末行：Traceback 里 `line XXX, in summary` 那句，正是「崩在哪」的答案
    导师侧提醒：故意报错的演示必须隔离（单独文件 / 放脚本最后 / 临时注释），否则脚本中断、后面验证全废
+        抄报错要抄「头（Traceback 定位）+ 尾（异常类型与消息）」；只抄末行 = 丢掉「崩在哪个方法」这一半信息
 
  【M-05-5】连续两次漏写 TODO 明确要求的类 docstring   #习惯
    现象：① 与 ② 的 TODO 都写了「类补一行 docstring」，两次都没写
    根因：动手前没有逐条对题，把 TODO 当成「提示」读，没当「验收清单」用
-   正解：每写完一项，拿 TODO 逐条打勾；类 / 模块 / 公开函数都应有 docstring
+   正解：每写完一项，拿 TODO 逐条打勾；类 / 模块 / 公开函数都应有 docstring；交验收前先自己跑一遍脚本
+        （④⑤ 连续两次 SyntaxError 都是没自跑就喊验收）
    Java 对照：≈ 类的 Javadoc；Python 用 """...""" 三引号文档字符串，运行时还可用 help() / 类.__doc__ 取到
-   复发：Day 5 连续 2 次
+   复发：Day 5 连续 2 次；Day 5 ③④ 经提醒后已补全（外层 Document / Document2 / Document3 共 4 处）
+        ⑥ 又添一种变形：docstring 写了，但把我的提示占位语【原样照抄】成内容
+        （写成 """一行「PDF 文档子类。」"""；提示里的「一行」和「」是说明语气，不是要写进文档的字）→ 计数 3
 
  【M-05-6】术语混用「可变参数」；未答默认值只求值一次的根因   #概念 #术语
    现象：② 验收 Q2 答「解决了可变参数重复使用的问题。第二次创建实例时 metadata 会复用第一次的」
@@ -395,3 +439,31 @@
           证据：改 b1.metadata 后 b2.metadata 里也出现 page:3（实跑）→ 呼应 Day4 ⑦
    Java 对照：≈ static final 字段在类加载时初始化一次、长期复用；Java 无默认参数，靠重载规避
    复发：—
+
+ 【M-05-7】注释漏写 # → 语法错误   #语法
+   现象：④ 第 6 项作答写成 `q1 ...` / `q2 ...`，没加 #；脚本 exit=1：
+        SyntaxError: invalid character '。' (U+3002)（第 154 行）
+   错误写法：q1 静态工厂方法和静态方法。要用具体的class去实例化
+   根因：Python 靠「行首第一个非空白字符是不是 #」判断注释；漏了 # 就当代码解析，
+        遇到中文标点「。」直接报 invalid character
+   正解：注释行以 # 开头：`# q1 ...`
+   Java 对照：Java 的 // 与 /* */ 都要显式符号，漏了同样是编译错误 —— 两边一致；
+        差异：Python 的 SyntaxError 会挡住整份文件执行（呼应 M-03-4/5）
+   复发：Day 5 ⑤（q1 行又漏 # → invalid character '，' U+FF0C；上一轮 ④ 刚讲完立刻复发）→ 计数 2
+
+ 【M-05-8】@classmethod 的 cls 机制没吃透   #概念
+   现象：④ 验收 Q1「为什么必须收 cls」答成「要用具体的class去实例化」（只到用途一半）；
+        Q2 答「会报错，没有得到cls这个参数」—— 方向对、机制错
+   根因：忽略了「装饰器自动注入」这件事：@classmethod 调用时会把「调用所用的那个类」自动塞作
+        第一个实参；删掉装饰器后类不会被注入，第一个实参（字符串）落进 cls
+   正解：
+        Q1 必须收 cls 的两点：① cls 是「实际调用的类」（子类调用 → 工厂返回子类实例，多态）；
+           ② 借 cls 才能 cls(...) 造实例、或访问 / 改类属性。名字 cls 只是约定
+        Q2 删装饰器后 `Document3.from_text("doc-100","hello")`：不注入类 → "doc-100" 落进 cls，
+           且少一个实参 → 先报 `TypeError: from_text() missing 1 required positional argument: 'text'`；
+           参数凑够也会因 cls 是 str 报 `'str' object is not callable`
+        → 关键不是「没得到 cls」，而是 **cls 收到了错误的东西**（装饰器是语义开关，不是风格）
+   Java 对照：Java 无 classmethod；静态工厂要拿到「实际类」得靠反射传 Class —— Python 由装饰器自动完成
+   复发：Day 5 ⑥ 验收 Q2 —— 同型再犯：无参 `super()` 的机制（编译期注入 `__class__` + 用方法首参推出起点）
+        是把导师原话整段【照抄】进答案，未独立作答 → 计数 2
+        下轮开场自测：不看笔记复述「无参 super() 为什么能省参数？它是沿 MRO 还是找父类？」
