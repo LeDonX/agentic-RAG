@@ -237,3 +237,67 @@ print(issubclass(PdfDocument, Document3))
 #        Q2 Python 3 的 super() 为什么可以不写参数？与 Java 的 super(...) 最本质的区别是什么？
 # Q1 崩在`p1.summary()` 里 →`super().summary()` →`Document3.summary` 访问`self.text` 那一下
 # q2 Python 3 在 编译期 给类体注入一个隐式变量`__class__` ，无参`super()` 就用「当前方法的第一个参数（`self` /`cls` ）+ 这个`__class__` 」推出「从哪个类往后找」——参数能省是编译器替你填了。Java 的`super` 是 关键字 、编译期静态绑定、只能指直接父类。补一句复述即可（这层是 ⑦ MRO 的地基：`super()` 不是「找父类」，是「 沿 MRO 往后找 」）。
+
+
+# ===== Block B · 知识点⑦：多继承与 MRO =====
+# 说明：本节在下面新建一组小类做演示，不改动上面的 Document / Document2 / Document3 / PdfDocument
+
+# TODO ⑦（先手写预测 → 再跑验证）：
+
+#   1) 定义 A、B（各带 mark() 返回自己类名）与 C(A, B)；先打印 C.__mro__，再打印 C().mark()
+class A():
+    def __init__(self):
+        super().__init__()
+    
+    def mark(self):
+        return "A"
+        
+class B():
+    def __init__(self):
+        super().__init__()
+    
+    def mark(self):
+        return "B"
+
+class C(A, B):
+    def __init__(self):
+        super().__init__()
+        
+print(C.__mro__)
+# C A B 
+print(C().mark())
+#A
+#   2) 定义 D(B, A)；打印 D.__mro__ 与 D().mark()
+class D(B, A):
+    def __init__(self):
+        super().__init__()
+
+print(D.__mro__)
+# D B A 
+print(D().mark())
+#B
+#   3) 菱形验证：定义 Base / L(Base) / R(Base) / Leaf(L, R)，每层 __init__ 先调 super().__init__()，
+#      再把本类名追加进 self.log；实例化 Leaf 后打印 .log
+class Base:
+    def __init__(self):
+        self.log = ["Base"]
+class L(Base):
+    def __init__(self):
+        super().__init__()
+        self.log.append("L")
+class R(Base):
+    def __init__(self):
+        super().__init__()
+        self.log.append("R")
+class Leaf(L, R):
+    def __init__(self):
+        super().__init__()
+        self.log.append("Leaf")
+
+print(Leaf.__mro__)
+print(Leaf().log)
+#   口头作答（答案写在 # 后）：
+#   # Q1：MRO 为什么必须是一条线性表，而不是保留继承树？
+#   # A1：C3 线性化把树压成一条 有序线性表 ，并保证两条：① 子类永远排在自己父类 之前 （否则子类方法被父类盖掉，违反继承语义）；② 同一类 只出现一次 （菱形里 Base 只算一次，这正是「协作式`super()` 」能成立的前提）。
+#   # Q2：C 与 D 只是父类顺序不同，mark() 结果为何会变？
+#   # A2：因为往父类找时是根据MRO的顺序去找，父类顺序不同找到的也就不同，而且找到第一个mark()就执行了，不会再往后找了。

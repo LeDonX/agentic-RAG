@@ -17,14 +17,15 @@
 - 开始日期：2026-10-10
 
 ## 当前进度
-- **当前 Day：5（进行中——Block A ①–⑤ 全部完成；Block B ⑥ 完成；⑦⑧⑨⑩ 待续）**
+- **当前 Day：5（进行中——Block A ①–⑤ 全部完成；Block B ⑥⑦ 完成；⑧⑨⑩ 待续）**
 - **当前里程碑：M1（可运行版）**
 - 上次会话（2026-10-14，Day 4）：**Day 4 全部完成并通过验收**——Block A 控制流 5 点 + Block B 函数 5 点（⑥`def`/return/多返回值、⑦可变默认参数陷阱★、⑧`*args/**kwargs`、⑨作用域 LEGB、⑩lambda）全部讲完、练习跑通
 - 本次会话（2026-10-15，Day 5 进行中）：协作规则 1 改为「清单展示后不停顿、直接开始 Block A ①」；**Block A ①–⑤ 全部讲完、练习跑通、逐个验收通过**（①class 与实例化、②`self`/`__init__`、③实例属性 vs 类属性、④三种方法、⑤访问控制）；**Block B ⑥（继承与 `super()`）讲完并跑通**（子类 `PdfDocument(Document3)`、`super().__init__()`、父类属性遮蔽、`super().summary()` 叠加重写），`exit=0`
-- **恢复点（新机器从这里起）**：Day 5 进行中 → 从 **Block B ⑦（多继承与 MRO）的讲解开始**（`learning/day05_oop.py` §195 起为 Block B 区）
-- 下一步：⑦多继承与 MRO → ⑧`@dataclass`（**固化 Day 5 最终版 `Document` = 当日产出物**）→ ⑨`__repr__`/`__str__` → ⑩`__eq__`/`__len__`；验收 = 能对比 Java 类与 Python 类
+- **恢复点（新机器从这里起）**：Day 5 进行中 → 从 **Block B ⑧（`@dataclass`）的讲解开始**（题面已落在 `learning/day05_oop_b.py`）
+- 下一步：⑧`@dataclass`（**固化 Day 5 最终版 `Document`**）→ ⑨`__repr__`/`__str__` → ⑩`__eq__`/`__len__`；⑧⑨⑩ 落在新文件 `learning/day05_oop_b.py`（按协作规则 7 拆分）；验收 = 能对比 Java 类与 Python 类
 - ✅ `learning/day04_functions.py` 已全量跑通（`uv run python learning/day04_functions.py`）
-- ✅ `learning/day05_oop.py` 全量可跑（`uv run python learning/day05_oop.py` → `exit=0`），含 Block A ①–⑤ 与 Block B ⑥ 全部练习
+- ✅ `learning/day05_oop.py` 全量可跑（`uv run python learning/day05_oop.py` → `exit=0`），含 Block A ①–⑤ 与 Block B ⑥⑦ 全部练习
+- ✅ `learning/day05_oop_b.py` 已就位（Block B ⑧ 题面，待学员作答）
 
 ## 环境信息
 - Python 版本：3.12.15（uv 托管，项目锁定 3.12）
@@ -56,7 +57,7 @@
 | 2 | 基础语法（动态类型 / f-string / None） | 已完成 | `learning/day02_calculator.py` | 4 组用例通过；已纠正 `/` 与 `//` |
 | 3 | 容器（list/dict/set、推导式、切片、解包） | 已完成 | `learning/day03_containers.py`（TODO 1–10 全部跑通） | 验收通过；已纠正 M-03-4/5/6 |
 | 4 | 控制流与函数（默认参数、`*args/**kwargs`、lambda） | 已完成 | `learning/day04_functions.py` | Block A 5/5 + Block B 5/5（⑥⑦⑧⑨⑩）全部完成并跑通；Day 4 验收通过；错题 M-04-1/2/3/4 |
-| 5 | 面向对象（class、`self`、`@dataclass`、魔术方法） | 进行中 | `learning/day05_oop.py`（`exit=0`，Block A ①–⑤ + Block B ⑥ 全部跑通） | Block A ①–⑤ 全部验收通过；Block B ⑥ 继承与 `super()` 完成；⑦多继承 MRO / ⑧`@dataclass` / ⑨⑩魔术方法 待续；错题 M-05-1…8 |
+| 5 | 面向对象（class、`self`、`@dataclass`、魔术方法） | 进行中 | `learning/day05_oop.py` + `learning/day05_oop_b.py` | Block A ①–⑤ 全部验收通过；Block B ⑥⑦ 完成（⑦ = 多继承与 MRO）；⑧`@dataclass` / ⑨⑩魔术方法 待续（已拆到 `day05_oop_b.py`）；错题 M-05-1…9 |
 | 6 | 模块/包/依赖管理/类型注解/异常 | 未开始 | | |
 | 7 | 复盘：CLI 小工具 + pytest 入门 | 未开始 | | |
 
@@ -161,3 +162,4 @@
 | 2026-10-13 | 3 | Block A（list/tuple/for）由上一会话完成；本次补齐 **Block B（dict/set）+ Block C（推导式/切片/解包）**，`day03_containers.py` TODO 1–10 全部跑通，Day 3 验收通过 | `NOTES.txt` → Day 03（错题 M-03-1/2/3/4/5/6） | Day 4 |
 | 2026-10-14 | 4 | 修复本机环境（装 uv 0.13.1 + `uv sync` 建 `.venv`）；Block A 控制流 5/5 讲完并验收；**Block B 函数 5/5（⑥`def`/return/多返回值、⑦可变默认参数陷阱、⑧`*args/**kwargs`、⑨作用域 LEGB、⑩lambda）全部讲完、练习跑通、Day 4 验收通过**；固化「先讲后练 + 分 Block + TODO 最后落盘」协作约定 | `NOTES.txt` → Day 04（速记 + 错题 M-04-1/2/3/4） | Day 5：面向对象 |
 | 2026-10-15 | 5（进行中） | 协作规则 1 改为「清单展示后不停顿、直接开始 Block A ①」；**Block A ①–⑤ 全部讲完 + 练习 + 逐个验收通过**；**Block B ⑥ 继承与 `super()` 完成（`exit=0`）**；错题 M-05-4/5/7 各追加复发、M-05-8 追加复发；会话到此暂停（学员要求提交推送） | `NOTES.txt` → Day 05（速记 + 错题 M-05-1…8） | 续 Day 5：Block B ⑦ 多继承与 MRO → ⑧`@dataclass` → ⑨⑩ |
+| 2026-10-16 | 5（进行中） | 四次流程反馈落地：① 新增协作规则 6（题面极简 / 题下空行 / 口头题预置 `#` / 合并凑数小题）→ ② 二次校准（追加「理解支架」：必要上下文 + 起跑点片段 + 口头题可多条、难度递增、带引导）→ ③ 新增协作规则 7（文件拆分）→ ④ 错题协议新增「手误不记、只记概念偏差」过滤标准；据此把 M-03-4/M-03-5/M-05-5/M-05-7 降级为 ⊘；**Block B ⑦ 多继承与 MRO 讲完、练习跑通、验收通过**；⑧ 题面按新规则重写并迁到新文件 `learning/day05_oop_b.py`（⑦ 及以前的 `day05_oop.py` 不迁移） | `NOTES.txt` → Day 05（错题 M-05-8 计数 3、新增 M-05-9；索引加 ⊘ 降级标注） | 续 Day 5：Block B ⑧`@dataclass` → ⑨⑩（在 `day05_oop_b.py`） |
