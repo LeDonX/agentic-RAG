@@ -18,32 +18,40 @@
 #      实例化一个实例并 print 它
 from dataclasses import dataclass, field
 
+
 @dataclass
-class Document():
+class Document:
     doc_id: str
     text: str
     metadata: dict = field(default_factory=dict)
-    #metadata: dict = {}
+
+    # metadata: dict = {}
     def __repr__(self):
         return f"Document(doc_id={self.doc_id!r}, text={self.text!r})"
-        
+
     def __str__(self):
         return f"[文档 {self.doc_id}] {self.text}"
-d = Document("a","text",{'name':'test'})
+
+
+d = Document("a", "text", {"name": "test"})
 print(d)
 #   2) 故意踩坑：先把 metadata 的默认值临时写成 `= {}` 跑一次，记录报错；跑完立刻改回 field(...)
 #      —— 上下文：这一步就是看 Python 拦不拦得住这个手滑写法
-#ValueError: mutable default <class 'dict'> for field metadata is not allowed: use default_factory
+# ValueError: mutable default <class 'dict'> for field metadata is not allowed: use default_factory
 #   3) 用 @dataclass 定义 PdfDocument(Document)，加字段 pages: int = 0，实例化并 print
 #      —— 上下文：字段声明顺序 = 生成 __init__ 的参数顺序，且父类字段必须排在子类字段前面
 from dataclasses import dataclass, field
 
+
 @dataclass
 class PdfDocument(Document):
     pages: int = 0
-    
-p = PdfDocument("a","text",{'name':'test'},12)
+
+
+p = PdfDocument("a", "text", {"name": "test"}, 12)
 print(p)
+
+
 #   口头作答（难度递增，前一条为后一条铺路；答案写在 # 后）：
 #   # Q1（观察）：把 metadata 写成 `= {}` 时，报错发生在「定义这个类」的时候，还是「实例化」的时候？
 #   # A1：定义这个类
@@ -54,6 +62,8 @@ print(p)
 def f(metadata=None):
     if metadata is None:
         metadata = {}
+
+
 #   # Q4（Java 对比）：@dataclass 替你自动生成了哪些方法？Java 里对应的东西是什么？它和 Java 16 的 record 最关键的区别是什么？
 #   # A4：__init__/__repr__/__eq__，构造函数、toString()、equals()，dataclass默认可变、可继承、访问通过属性
 
@@ -78,7 +88,7 @@ print(repr(d2))
 print([d2])
 #   3) 故意踩坑：把 __repr__ 临时【注释掉】（只留 __str__），再 print([d2]) 一次，看列表里变成什么；
 #      跑完恢复 __repr__，保持文件可跑
-#多了属性打印：[Document(doc_id='doc-002', text='向量检索', metadata={})]
+# 多了属性打印：[Document(doc_id='doc-002', text='向量检索', metadata={})]
 # 口头作答（难度递增，前一条为后一条铺路；答案写在 # 后）：
 #   # Q1（观察）：项2 的四行里，print(d2) 走的是 __str__ 还是 __repr__？print([d2]) 走的又是哪个？
 #   # A1：__str__，__repr__
@@ -95,6 +105,7 @@ print([d2])
 
 # TODO ⑩（先手写预测 → 再跑验证）：
 
+
 #   1) 定义普通类 Pair（字段 a、b），先【不写】__eq__。实例化 p1 = Pair(1, 2)、p2 = Pair(1, 2)，
 #      逐行打印 p1 == p2、p1 is p2、p1 == p1
 #      —— 上下文：先看「不写 __eq__」时 == 的默认行为
@@ -103,9 +114,11 @@ class Pair:
     def __init__(self, a, b):
         self.a = a
         self.b = b
-        
+
     # def __eq__(self, other):
-        # return isinstance(other, Pair) and (self.a, self.b) == (other.a, other.b)
+    # return isinstance(other, Pair) and (self.a, self.b) == (other.a, other.b)
+
+
 p1 = Pair(1, 2)
 p2 = Pair(1, 2)
 print(p1 == p2)
@@ -117,6 +130,8 @@ print(p1 == p1)
 #
 print(p1 == p2)
 print(Pair.__hash__)
+
+
 # print(hash(p1))
 #   3) 定义类 Bag，__init__(self, items) + __len__ 返回 len(self.items)：
 #      打印 len(Bag([1,2,3]))、bool(Bag([]))、bool(Bag([1]))
@@ -125,11 +140,12 @@ print(Pair.__hash__)
 class Bag:
     def __init__(self, items):
         self.items = items
-        
+
     def __len__(self):
         return len(self.items)
 
-print(len(Bag([1,2,3])))
+
+print(len(Bag([1, 2, 3])))
 print(bool(Bag([])))
 print(bool(Bag([1])))
 # 口头作答（难度递增，前一条为后一条铺路；答案写在 # 后）：

@@ -8,6 +8,7 @@
 
 # ===== Block A · 知识点①：class 与实例化（没有 new）=====
 
+
 # TODO ①：
 #   1) 定义一个 Document 类，空类体用 pass，带一行 docstring（今天不写 __init__）
 #   2) 用「类名加括号」实例化 d1、d2（不许出现 new）
@@ -18,8 +19,10 @@
 #        Q2 为什么 print(d1) 打印的不是内容，而是一串地址？
 class Document:
     """知识库文档数据模型。"""
+
     pass
-    
+
+
 d1 = Document()
 d2 = Document()
 
@@ -32,11 +35,12 @@ print(d1.doc_id)
 print(d1.text)
 print(d1)
 
-#q1 因为d2并没有在运行时挂doc_id
-#q2 应该类似java中打印的是地址
+# q1 因为d2并没有在运行时挂doc_id
+# q2 应该类似java中打印的是地址
 
 
 # ===== Block A · 知识点②：self 与 __init__ =====
+
 
 # TODO ②：
 #   1) 给 Document 加 __init__(self, doc_id, text, metadata=None)：
@@ -44,87 +48,102 @@ print(d1)
 #        · 三个属性都挂到 self 上；类补一行 docstring（① 漏了）
 class Document:
     """知识库文档数据模型。"""
+
     def __init__(self, doc_id, text, metadata=None):
         if metadata is None:
             metadata = {}
         self.doc_id = doc_id
         self.text = text
         self.metadata = metadata
+
+
 #   2) 实例化两份：d1 不传 metadata；d2 传 {"source": "manual.pdf", "page": 3}
-d1=Document("doc-001","RAG 是检索增强生成")
-d2=Document("doc-001","RAG 是检索增强生成",{"source": "manual.pdf", "page": 3})
+d1 = Document("doc-001", "RAG 是检索增强生成")
+d2 = Document("doc-001", "RAG 是检索增强生成", {"source": "manual.pdf", "page": 3})
 #   3) 逐行打印两份的 __dict__，并打印 d1.metadata is d2.metadata（应为 False）
 print(d1.__dict__)
-print(d2.__dict__) 
+print(d2.__dict__)
 print(d1.metadata is d2.metadata)
+
+
 #   4) 故意删掉一处 self. 前缀，跑一次，把报错原文抄成注释
 class Document2:
     """知识库文档数据模型。"""
-#TypeError: Document2.__init__() missing 2 required positional arguments: 'doc_id' and 'text'
+
+    # TypeError: Document2.__init__() missing 2 required positional arguments: 'doc_id' and 'text'
     def __init__(self, doc_id, text, metadata=None):
         if metadata is None:
             metadata = {}
         doc_id = doc_id
         self.text = text
         self.metadata = metadata
-d=Document2("doc-002","RAG 是检索增强生成2",{"source": "manual.pdf", "page": 3})
+
+
+d = Document2("doc-002", "RAG 是检索增强生成2", {"source": "manual.pdf", "page": 3})
 print("实例化2成功，text =", d.text)
-#print(d.doc_id)
+# print(d.doc_id)
 #   5) 注释回答：d.show() 等价于哪个函数调用？
-#Document.show()
+# Document.show()
 
 
 # ===== Block A · 知识点③：实例属性 vs 类属性 =====
+
 
 # TODO ③（6 项，动手前先逐条看一遍）：
 #   1) 给 Document 加类属性 category = "general"（写在类体里、__init__ 之外），
 #      加注释说明它等价 Java 的什么
 class Document3:
     """知识库文档数据模型。"""
+
     category = "general"
+
     def __init__(self, doc_id, text, metadata=None):
         self.doc_id = doc_id
         self.text = text
         self.metadata = metadata
         self._cache = {}
         self.__secret = "hidden"
+
     def summary(self):
-        #self收到的是实例对象
+        # self收到的是实例对象
         return f"[{self.category}] {self.text}"
-        
+
     def reveal(self):
-        return self.__secret    
-    @classmethod    
+        return self.__secret
+
+    @classmethod
     def from_text(cls, doc_id, text):
         print("  cls.__name__ =", cls.__name__)
         return cls(doc_id, text)
-        
+
     @staticmethod
     def is_supported_format(name):
         return name.lower().endswith((".pdf", ".md", ".txt"))
-#相当于java中的静态变量
+
+
+# 相当于java中的静态变量
 #   2) 实例化 d3、d4（不同 doc_id），打印 d3.category / d4.category / Document.category
-d3 = Document3(1, 'd3')
-d4 = Document3(2, 'd4')
+d3 = Document3(1, "d3")
+d4 = Document3(2, "d4")
 print(d3.category)
 print(d4.category)
 print(Document3.category)
 #   3) 执行 d3.category = "faq"，再打印三者；并打印 d3.__dict__，观察 category 出现在哪里
-d3.category = 'faq'
+d3.category = "faq"
 print(d3.__dict__)
 print(d3.category)
 print(d4.category)
 print(Document3.category)
 #   4) 打印 "category" in Document.__dict__（应为 True）
-print('category' in Document3.__dict__)
+print("category" in Document3.__dict__)
 #   5) 执行 Document.category = "kb"，再打印三者，用注释解释：为什么 d4 变了、d3 没变？
 Document3.category = "kb"
 print(d3.category)
 print(d4.category)
 print(Document3.category)
-#因为上面有赋值操作，给d3挂上了实例字典，而d4依旧用的是类字典
+# 因为上面有赋值操作，给d3挂上了实例字典，而d4依旧用的是类字典
 #   6) 注释回答：若 category 是 Java 的 static 字段，d3.category = "faq" 会发生什么？与 Python 有何相反之处？
-#所有实例都会共享faq，python只会给d3实例挂上实例字典
+# 所有实例都会共享faq，python只会给d3实例挂上实例字典
 
 
 # ===== Block A · 知识点④：三种方法（实例方法 / @classmethod / @staticmethod）=====
@@ -156,8 +175,8 @@ print(d3.is_supported_format("x.md"))
 #   6) 注释回答：
 #        Q1 @classmethod 与 @staticmethod 分别等价 Java 的什么？classmethod 为什么必须收 cls？
 #        Q2 若把 @classmethod 的装饰器删掉（只留 def from_text(cls, ...)），调用会怎样？
-#q1 `@classmethod` ≈ Java 的 静态工厂方法 、`@staticmethod` ≈ Java 的 static 方法 ✅。 为什么必须收`cls` ：`@classmethod` 在 调用时 （无论`类.f()` 还是`实例.f()` ）Python 会 自动把「调用所用的那个类」塞作第一个实参 ，所以第一个形参必须接得住它（`cls` 只是约定名）。它有两点用处：①`cls` 是 实际调用的类 → 子类调用时工厂返回 子类 实例（多态）；② 借`cls` 才能`cls(...)` 造实例、或访问/改类属性。
-#q2 删掉装饰器后，`Document3.from_text("doc-100","hello")` ： 不再注入类 → 第一个实参`"doc-100"` 落进`cls` （是 字符串 、不是类），同时少一个实参 → 先报`TypeError: from_text() missing 1 required positional argument: 'text'` ；即便参数凑够，`cls(doc_id, text)` 也会因`cls` 是`str` 报`TypeError: 'str' object is not callable` 。→ 关键不是「 没得到 cls」，而是 cls 收到了错误的东西 ——装饰器是语义开关，不是风格。
+# q1 `@classmethod` ≈ Java 的 静态工厂方法 、`@staticmethod` ≈ Java 的 static 方法 ✅。 为什么必须收`cls` ：`@classmethod` 在 调用时 （无论`类.f()` 还是`实例.f()` ）Python 会 自动把「调用所用的那个类」塞作第一个实参 ，所以第一个形参必须接得住它（`cls` 只是约定名）。它有两点用处：①`cls` 是 实际调用的类 → 子类调用时工厂返回 子类 实例（多态）；② 借`cls` 才能`cls(...)` 造实例、或访问/改类属性。
+# q2 删掉装饰器后，`Document3.from_text("doc-100","hello")` ： 不再注入类 → 第一个实参`"doc-100"` 落进`cls` （是 字符串 、不是类），同时少一个实参 → 先报`TypeError: from_text() missing 1 required positional argument: 'text'` ；即便参数凑够，`cls(doc_id, text)` 也会因`cls` 是`str` 报`TypeError: 'str' object is not callable` 。→ 关键不是「 没得到 cls」，而是 cls 收到了错误的东西 ——装饰器是语义开关，不是风格。
 
 
 # ===== Block A · 知识点⑤：访问控制（_x / __x / __x__）=====
@@ -183,17 +202,18 @@ print(d5._Document3__secret)
 #   4) 故意报错演示：把 print(d5.__secret) 放在【文件最后一行】（隔离，参照 M-05-4），
 #      跑一次把报错原文抄成注释（应为 AttributeError: 'Document3' object has no attribute '__secret'）；
 #      抄完【把该行注释掉】，保持文件后续可跑（Day 6 起还要用）
-#AttributeError: 'Document3' object has no attribute '__secret'
-#print(d5.__secret)
+# AttributeError: 'Document3' object has no attribute '__secret'
+# print(d5.__secret)
 #   5) 注释回答：
 #        Q1 _x 与 __x 各自想表达什么？谁能真正挡住外部访问？
 #        Q2 与 Java 的 private 相比，最本质的区别是什么？
-#q1 前者是类内部使用，后者会触发名称改写，会在前面追加_类名。后者会挡住外部访问，但是也可以通过增加_类名绕过。
-#q2 java中的private是编译期硬性规则，python大多算约定，最终还是可以被绕过。
+# q1 前者是类内部使用，后者会触发名称改写，会在前面追加_类名。后者会挡住外部访问，但是也可以通过增加_类名绕过。
+# q2 java中的private是编译期硬性规则，python大多算约定，最终还是可以被绕过。
 
 
 # ===== Block B · 知识点⑥：继承 与 super() =====
 # 说明：本节在 Document3 之下新增一个子类；Document / Document2 / Document3 一律不动
+
 
 # TODO ⑥（6 项，动手前先逐条看一遍）：
 #   1) 定义 class PdfDocument(Document3)，docstring 一行「PDF 文档子类。」
@@ -202,12 +222,17 @@ print(d5._Document3__secret)
 #          · 再 self.pages = pages
 class PdfDocument(Document3):
     """「PDF 文档子类。」"""
+
     category = "pdf"
+
     def __init__(self, doc_id, text, pages):
         super().__init__(doc_id, text)
         self.pages = pages
+
     def summary(self):
         return f"[PDF·{self.pages}页] " + super().summary()
+
+
 #   2) 在 PdfDocument 的【类体里】加类属性 category = "pdf"（不要写在 __init__ 里）
 #   3) 重写 summary(self)：返回 f"[PDF·{self.pages}页] " + super().summary()
 #        · 体会 super().summary()：先跑父类的输出，再在子类前面拼前缀
@@ -244,55 +269,71 @@ print(issubclass(PdfDocument, Document3))
 
 # TODO ⑦（先手写预测 → 再跑验证）：
 
+
 #   1) 定义 A、B（各带 mark() 返回自己类名）与 C(A, B)；先打印 C.__mro__，再打印 C().mark()
-class A():
+class A:
     def __init__(self):
         super().__init__()
-    
+
     def mark(self):
         return "A"
-        
-class B():
+
+
+class B:
     def __init__(self):
         super().__init__()
-    
+
     def mark(self):
         return "B"
+
 
 class C(A, B):
     def __init__(self):
         super().__init__()
-        
+
+
 print(C.__mro__)
-# C A B 
+# C A B
 print(C().mark())
-#A
+
+
+# A
 #   2) 定义 D(B, A)；打印 D.__mro__ 与 D().mark()
 class D(B, A):
     def __init__(self):
         super().__init__()
 
+
 print(D.__mro__)
-# D B A 
+# D B A
 print(D().mark())
-#B
+
+
+# B
 #   3) 菱形验证：定义 Base / L(Base) / R(Base) / Leaf(L, R)，每层 __init__ 先调 super().__init__()，
 #      再把本类名追加进 self.log；实例化 Leaf 后打印 .log
 class Base:
     def __init__(self):
         self.log = ["Base"]
+
+
 class L(Base):
     def __init__(self):
         super().__init__()
         self.log.append("L")
+
+
 class R(Base):
     def __init__(self):
         super().__init__()
         self.log.append("R")
+
+
 class Leaf(L, R):
     def __init__(self):
         super().__init__()
         self.log.append("Leaf")
+
 
 print(Leaf.__mro__)
 print(Leaf().log)

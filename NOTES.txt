@@ -38,6 +38,13 @@
   ☐ M-05-10 Day5  把 dataclass 的 field(default_factory=...) 当成「函数参数默认值」的正解（混淆两种语境）
   ☐ M-05-11 Day5  dataclasses 拦可变默认值的机制说错（说成「__init__ 时见可变类型」；实为装饰器阶段 + 以「不可哈希」为代理判据）
   ☐ M-05-12 Day5  @dataclass 误用在「无字段注解」的类上（⑩ 把题面要求的「普通类 Pair」写成 @dataclass，实验被污染）
+  ☐ M-06-1  Day6  `__name__` 的两种取值记反（直接运行 ↔ `__main__`）
+  ☐ M-06-2  Day6  相对导入失败的根因说成「父目录不存在」（实为缺包身份 `__package__`）
+  ⊘ M-06-3  Day6  dict key 未加引号 / 把 TOML 表头搬进 Python → NameError  〔降级 2026-10-18：手误类（引号/语法层），不入复习抽题〕
+  ☐ M-06-4  Day6  ⑥-3 答「变窄」但实测 20→59 变多 —— `select` 是**替换**默认集，不是叠加
+  ☐ M-06-5  Day6  Q3 Java 工具对照答成「没有严格对应」（Checkstyle/PMD ↔ check，Spotless ↔ format）
+  ☐ M-06-6  Day6  捕获范围开太宽：把 TypeError 并进「输入非法」→ 掩盖了 `int(str)` 这个自造 bug
+  ☐ M-06-7  Day6  `except` 捕了一个**永远不会被抛出**的类型（`except ParseError` 接 `int()` 抛的 ValueError）→ 死分支、异常静默穿透
 
   规则：同一根因再次踩坑不新增条目，只在原条目追加「复发：Day XX」并把计数 +1。
   更正（2026-10-16）：新增「错题过滤标准」—— 判据 = 看到报错 / 提醒后几秒内自己能改对的是「手误」，
@@ -564,3 +571,208 @@
         → 想看「普通类默认行为」，必须去掉 @dataclass
    Java 对照：≈ 给一个没有成员字段的类套 Lombok @Data —— 生成的 toString()/equals() 同样是空壳
    复发：—；待落实：去掉 @dataclass、临时去掉 __eq__，重跑项1 观察默认 False
+
+
+════════════════════════════════════════════════════════════════════
+ 🗓️  Day 06 — 模块/包/导入 · 依赖管理 · 类型注解与异常（2026-10-18）
+════════════════════════════════════════════════════════════════════
+ 📦 产出物：learning/day06_utils.py、day06_modules.py（Block A ①）、day06_pkg/ + day06_pkg_demo.py（②）、
+         day06_cache.py（③）、day06_deps.py（④）、day06_uv.py（⑤）、day06_ruff.py（⑥）、
+         day06_mypy.py（⑦）、day06_errors.py（⑧⑨）；
+         项目侧：[pyproject.toml] 新增 [dependency-groups].dev（mypy / ruff）+ [tool.ruff]（line-length / select / per-file-ignores）+ [tool.mypy]
+ 📌 状态：**Day 6 全部完成**——Block A ①②③（模块/包/导入）、Block B ④⑤（uv 依赖管理）、
+         Block C ⑥⑦（ruff / mypy）、Block D ⑧⑨（异常处理 / 自定义异常层次）全部讲完、练习跑通、逐个验收通过；
+         `uv run ruff check learning/day06_ruff.py` / `learning/day06_errors.py` 均 All checks passed；
+         `uv run mypy learning/day06_errors.py` → Success；错题 M-06-1…7（其中 M-06-3 降级 ⊘ 手误类）
+
+ ── 💡 一、知识点速记 ─────────────────────────────────────────────
+ ◆ Block A — 模块 / 包 / 导入（①②③）
+  · 模块 = 一个 .py 文件；`import mod` 把**整个模块对象**绑到一个名字；`from mod import x` 只绑成员
+        `from mod import *` 会污染命名空间，工程里别用
+  · 模块只在**首次导入时执行一次**，之后一律从 `sys.modules`（已加载缓存）复用 → 模块级代码不重复跑
+        想强制重跑要 `importlib.reload()`；这也是「模块级副作用只发生一次」的根
+  · `sys.path` 决定「去哪找模块」：脚本所在目录排第一（所以 `learning/` 里的脚本能 import 同目录模块）
+        找不到就 ModuleNotFoundError；改 `sys.path` 是临时手段，正规做法是装成包
+  · `__name__`：**直接运行**该文件 → `"__main__"`；**被 import** → 模块名（如 `"day06_utils"`）
+        → `if __name__ == "__main__":` 的代码只在直接运行时执行（≈ Java `main`，但被 import 时不跑）
+  · 包 = 含 `__init__.py` 的目录（`__init__.py` 在 import 包时执行一次）；相对导入的锚点是模块自己的
+        **`__package__`**，不是文件系统里的目录；脚本被直接运行时 `__name__=="__main__"`、`__package__` 空
+        → `from . import x` 报 ImportError: attempted relative import with no known parent package
+  · Java 对照：Python 模块 ≈ Java 一个 class 文件，但**没有 public class 名 = 文件名**的硬约束；
+        包 ≈ package，可 Java 的包由 `package` 声明 + 目录结构在**编译期**定死，压根没有「相对导入」
+
+ ◆ Block B — 依赖管理（④⑤：pyproject.toml / uv）
+  · `pyproject.toml` ≈ `pom.xml`：`[project]` = 项目元数据与**运行期**依赖；
+        `[dependency-groups].dev` = **开发期**依赖（mypy / ruff 这类只在本机跑的工具）
+  · uv 工作流：`uv add <pkg>` / `uv add --dev <pkg>` 改 pyproject.toml + 同步环境；
+        `uv sync` 按锁文件把环境拉成一致（新机器第一步）；`uv run <cmd>` 在项目环境里跑命令
+        `uv.lock` = 锁文件（精确版本 + 哈希）≈ Maven 的锁定解析结果，保证「换机能复现」
+  · TOML 语法 vs Python 取值是**两套语法**：`[project]` 是 TOML 表头；读进来后它只是 dict 里的
+        字符串 key → 必须写 `data["project"]["name"]`（见 M-06-3）
+  · Java 对照：uv ≈ Maven + nvm 合体（管版本也管依赖）；`uv.lock` ≈ dependencyManagement + 完整解析树
+
+ ◆ Block C — ruff（lint / format）与 mypy（静态类型）
+  · ruff 干两件不同的事：`ruff check` = **静态规则**（找问题）｜`ruff format` = **格式化**（改风格）
+        `check` 只挑刺不改（除 `--fix` 自动修可修项）；两者分开，别混
+  · Java 对照（见 M-06-5）：`ruff check` ≈ Checkstyle（风格）+ PMD/ErrorProne（F 族缺陷）；
+        `ruff format` ≈ Spotless / google-java-format。Java 是四件套，ruff 一个工具全包
+  · `[tool.ruff.lint] select` 的语义是**替换（覆盖）**默认集、不是叠加 → 方向要拿「默认集 vs 你写的集」
+        比包含关系；本机实测 20 → 59（见 M-06-4）
+  · 规则族：E/W = pycodestyle（风格，如 E501 行超长 / W293 空行带空格）；F = pyflakes（真缺陷，如
+        F401 导入未用 / F823 使用前未定义）；I = isort（导入排序）
+        `invalid-syntax` 来自解析层 —— 语法不合法会**整片文件**报，优先修它（呼应 Day 3 执行模型）
+  · `per-file-ignores` 按 glob 关规则（`"learning/*.py" = ["E501","E402"]`）；`--statistics` 看分布
+        可自动修的（W293/E741 之类）用 `--fix`；不可自动修的（如 E741 改名）要手改
+  · mypy = **渐进类型（gradual typing）**：没注解的参数 / 变量 / 返回值一律当 `Any`，而 `Any`
+        不与任何类型冲突 → 所以默认只在**被注解过**的地方报错（这就是「渐进」的入口）
+  · mypy 是**纯静态**分析：脚本一行都不会跑（无副作用）；报错是「类型层」的事，能不能跑是「运行期」的事
+        两件事可以完全相反：mypy 全红也能跑出结果，mypy 全绿也可能运行期崩
+  · `[tool.mypy]` 只是**配置**（python_version / warn_unused_ignores / check_untyped_defs …），
+        写配置本身**不改变检查强度**（实测条数不变）；`--strict` 才会显著变严（实测 10 → 92）
+  · 常见错误码：`arg-type`（实参类型不符）/ `return-value`（返回值不符）/ `attr-defined`（属性不存在）/
+        `no-redef`（同一名字重复定义）/ `call-arg`（实参个数不符）/ `call-overload`（重载/签名不匹配）/
+        `operator`（对未知类型用运算符）/ `empty-body`（函数体只有 `...`）
+  · Java 对照：mypy ≈ javac 的类型检查，但 Java **编译期强制**、Python 全靠外部工具；
+        「注解只是提示、运行期不强制」的代价 = 类型错要等工具/mypy 才暴露，好处 = 能渐进加注解、不阻塞开发
+
+ ◆ Block D — 异常处理（⑧⑨）
+  · 四块执行顺序：try 无异常 → 跑 `else`；有异常 → 跑 `except`；`finally` **任何情况都跑**
+        （哪怕 try/except 里已经 `return` —— 实测 `1 2.0 / 3 else / 4 finally` 两种输入都出现 finally）
+        ⚠ `finally` 里写 `return` 会**覆盖** try/except 里已经算出的返回值
+  · `raise X from e` → 设 `e.__cause__`，traceback 打两句
+        "The above exception was the direct cause of the following exception"（**≈ Java `initCause()`** / 构造器传 cause）
+        不用 `from` → 隐式 `__context__`，traceback 打 "During handling of the above exception, another exception occurred"
+        → 读 traceback 要连这两句一起抄，否则丢掉「崩在哪个方法、谁引起的」（M-05-4 的复发点）
+  · `except ... as e` 的 `e` 在**块结束时被删除**（Python 主动 `del`）→ 出了 except 块再引用它 = NameError
+        目的：打断「异常对象 → traceback → 帧 → 局部变量 → 异常对象」的引用环，避免内存泄漏
+        Java 对照：Java 的 catch 变量只在块内可见（作用域规则），Python 是「块结束主动删名字」
+  · 裸 `except:` 抓的是 `BaseException`（含 `KeyboardInterrupt` / `SystemExit`）；`except Exception` 只抓
+        `Exception` 子树。`KeyboardInterrupt` 直接继承 `BaseException`、与 `Exception` 是**兄弟** → 裸 except 会
+        把 Ctrl-C 一起吞掉  ≈ Java `catch (Throwable)` vs `catch (Exception)`
+  · 自定义异常层次：一个基类 `AppError(Exception)` + 按域派生子类（`ParseError(AppError)`）
+        `except` 按 **isinstance 语义**匹配 → `except AppError` 既能兜住全部「预期内错误」、
+        又不拦 `KeyboardInterrupt` 这类；需要差异化处理时再捕具体子类 → 粗细粒度兼顾
+        Python 没有受检异常，调用方靠「基类约定 + docstring / 文档 + 测试」知道该捕哪个
+  · `except` 匹配是**从上到下、第一个命中即停** → 子类要写在父类前面，否则被父类先截走
+  · 捕获范围只写「预期内、且我知道怎么处理」的（见 M-06-6 / M-06-7）
+  · EAFP vs LBYL：Python 偏爱 EAFP（先做、出错再捕，`try: int(s)`），Java 习惯 LBYL（先查再动）
+  · Java 对照：多项 unchecked 异常都不必声明；Python 连 checked/unchecked 的区分都没有 —— 全靠约定
+
+ ── ❌ 错题 / 踩坑（即时记录） ──────────────────────────────────────
+ 【M-06-1】`__name__` 的两种取值记反   #概念
+   现象：① 验收 Q1 答「前者（直接运行）是模块名，后者（被导入）是 __main__」—— 两边对应写反
+   根因：把「模块名 / __main__」与两种运行方式的对应搞反；机制其实懂（同题后半句
+        「直接运行而不是被调用时才打印」正确），属回忆偏差
+   正解：直接运行该文件 → __name__ == "__main__"；被 import → __name__ == "day06_utils"（= 模块名）
+   Java 对照：Java 无 __name__ 变量；「是不是入口」由 main 方法承担，且与被谁引用无关
+   复发：—
+
+ 【M-04-3 复发·Day 6】（原条目见 Day 04）要求函数「返回字符串」、注解也写了 `-> str`，
+   却写成 print（打印型）→ 实际返回 None；② 又裸调 describe 未接返回值
+   → 与 M-04-3 同一根因（打印型 / 返回型不分），计数 3；正解：`return f"{APP_NAME} :: {name}"`
+
+ 【M-06-2】相对导入失败的根因说错   #概念
+   现象：② 验收 Q2 答「因为直接运行它的父目录不存在」—— 把「没有包身份」说成「目录不存在」
+   根因：相对导入的锚点是**模块自己的 `__package__`**，不是文件系统里的目录。
+        直接运行脚本时 `__name__ == "__main__"`、`__package__` 为空 → 没有「父包」可依托
+        → 报 ImportError: attempted relative import with no known parent package
+        （其实 learning/ 目录就存在，所以「父目录不存在」这个理由是错的）
+   正解：`.` = 当前包（day06_pkg）；相对导入只能用在「作为包的一部分被导入」的模块里；
+        脚本被直接运行时没有包上下文，故报错
+   Java 对照：Java 的包由编译期 `package` 声明 + 目录结构决定，根本没有「相对导入」概念；
+        同包类互相可见是编译期规则，与「怎么运行」无关
+   复发：—
+
+ 【M-06-3】把 TOML 的表头写法当成 Python 的取值写法（dict key 未加引号）   #语法 #概念
+   现象：④-1 写成 `data[pyproject.toml][name]` → NameError: name 'pyproject' is not defined
+   根因：① Python 的取值语法里，`[]` 内是**表达式**：`pyproject.toml` 被解析成「变量 pyproject 的属性 toml」，
+          `name` 被当成未定义变量 → 双双 NameError（不是「key 找不到」）
+        ② 把配置文件里的 **TOML 表头** `[project]` 直接搬进 Python —— 那是 .toml 文件里的语法；
+          读进来后它只是 dict 里的一个**字符串 key**，必须写 `data["project"]["name"]`
+   正解：`print(f"name -> {data['project']['name']}")`
+        附带预警：dependencies 是 **list**，`"..." + data[...]` 会 TypeError（str+list 不隐式转换，呼应 Day2）
+   Java 对照：Java 读配置（Properties / Jackson）后取值同样用字符串 key：`cfg.get("project")`；
+        「配置文件的格式语法（.properties/.toml）」与「代码里怎么取值」永远是两套语法
+   〔降级 2026-10-18：判据线 43–46 —— 「漏引号 / 语法层」属手误类，不入复习抽题；
+     本条的真收获（TOML 表头语法 ≠ Python 取值语法）保留在「知识点速记」〕
+   ── 导师侧流程修复（2026-10-18）：⑤ 题面写「把输出 / 片段原样贴到作答区」，学员直接粘贴**未注释**的
+        多行文本（TOML 片段 + 命令输出）→ day06_uv.py 语法被打断（实测 `ruff check learning/` 报
+        58 处 `invalid-syntax`，全部来自该文件）。
+        出题规范新增：题面必须写明「作答区内容必须是合法 Python」，并给出两种写法 ——
+        （a）长输出 / 片段统一写进**文件首个三引号 docstring**（避免裸字符串触发 B018 useless-expression）；
+        （b）短答 / 口头答写在 `#` 后。规则正本同步进 PROMPT.md 规则 6。
+
+ 【M-06-4】`select` 与默认集的关系答反（⑥-3 答「变窄」，实测 20 → 59 = 变多）   #概念
+   现象：⑥-3 观察目标问「显式 select 之后规则集变宽还是变窄」，答「变窄」；但同一题两次统计是 20 → 59
+   根因：`[tool.ruff.lint] select` 的语义是**替换（覆盖）**默认集，不是「在默认集之上叠加」。
+        本机默认的 "E" 一族只开了很小一块（不含 E501 行超长 / E402 导入位置），
+        显式写 `"E"` 后 pycodestyle 整族被打开 —— 学习文件里的长注释 + 交错 import 立刻贡献
+        44×E501 + 9×E402 → 净效果是**变多（变宽）**，而不是变窄
+   正解：方向只能看「默认集 vs 你写的集」谁包含谁；本机实测 20 → 59（换 select 后 E 族被补全）
+   Java 对照：≈ checkstyle.xml 里自己列出的「启用 module 清单」；不写 = Checkstyle 默认清单，
+        写了则整份替换 —— 不是「在默认之上追加」
+   复发：—
+
+ 【M-06-5】Java 工具对照答成「没有严格对应」   #概念
+   现象：⑥ Q3 问「ruff check / ruff format / `[tool.ruff.lint] select` 各对应 Java 生态什么」，只答「没有严格对应」
+   根因：Java 把这块能力拆成了好几个工具，所以不存在「一个 ruff ↔ 一个工具」，但**逐项都能对上**
+   正解：ruff check ≈ Checkstyle（风格/静态规则）+ PMD/ErrorProne（F 族：未用变量、未定义名等缺陷）；
+        ruff format ≈ Spotless / google-java-format（Formatter）；
+        `[tool.ruff.lint] select` ≈ checkstyle.xml 里启用的 module 清单 / Spotless 里配的规则
+   Java 对照：Java 侧 = Checkstyle + PMD + ErrorProne + Spotless 四件套；ruff 一个工具全包（检查 + 格式化）
+   复发：—
+
+ 【M-06-6】捕获范围开太宽，把「自造的编程错」也伪装成了「输入非法」   #概念
+   现象：⑧-2 里写 `i = int(str)`（本意是参数 `text`，却把内置类型 `str` 传了进去），
+        又在 parse_int 里 `except (ValueError, TypeError) as exc` —— 这个 TypeError 被一起抓走，
+        于是**没有任何报错**，只抛出一句「无法把 'aas' 解析成整数」；⑧-2 的观察目标
+        （traceback 的因果链）也一并被掩盖，验收时贴不出该看的那一段
+   根因：`except` 只该抓「**预期内、且我知道怎么处理**」的错误；`TypeError` 在这里是
+        「我自己写错的代码」的信号，混进「数据非法」的通道 = 把 bug 静默降级成业务错误
+   正解：只捕该捕的 —— `except ValueError as exc: raise ParseError(...) from exc`；
+        并修 `i = int(text)`
+   Java 对照：≈ `catch (Exception e) { return default; }` 一刀切 —— Java 里同样反模式
+   复发：—
+   旁注（手误类，不入错题，仅口头指出）：`l = parse_int('aas')` 写死实参、架空了入参 `text`；
+        traceback 只贴了「后 6 行」，恰好丢掉两句 `The above exception was the direct cause of ...`
+
+ 【M-06-7】`except` 捕了一个「永远不会被抛出」的类型 → 死分支 + 异常静默穿透   #概念 #易复发
+   现象：⑨-1 要求「把 parse_int 里那两处 raise 从 ValueError 改成 ParseError（保留 `from exc`）」，
+        学员改了 raise，却**没同步改 except** —— 写成 `except ParseError as exc: raise ParseError(...) from exc`：
+        · `int(text)` 实际抛的是 ValueError，而 `except ParseError` 接不到它（两类型无继承关系）
+          → 这个 except 是**死分支**，ValueError 直接冲出 parse_int，`from exc` 也一起失效
+        · 连带崩点在 `__main__`：第 95 行留着 ⑧-2 的**裸调用** `load_setting("abc")`，脚本在此就崩了，
+          紧跟其后的 ⑨ `try/except AppError` 根本没跑到 → ⑨-1 期待的 `ParseError ValueError` 从未打印，
+          作答区只剩 3 行空白
+        · ⑧-2 造的那条 `RuntimeError: 配置项 'abc' 非法` 链也一并失效（原因同第一条）
+   根因：① `except X` 只能接到 **X 及其子类**的实例 —— 类型对不上 = 永不触发；
+        ② 「改了抛出的异常类型、却忘了改上层的 except」**不会报任何错**，只会静默地让异常穿透，
+           属于最隐蔽的一类 bug（Java 有受检异常能让编译期兜住一部分，Python 完全没有这层保护）；
+        ③ 故意报错的演示没做隔离，中断了后面本该打印的观察输出（M-05-4 导师侧提醒的复发）
+   正解：
+        def parse_int(text: str) -> int:
+            """把字符串转成整数；失败时 raise ParseError（信息里含原始输入）。"""
+            try:
+                return int(text)
+            except ValueError as exc:                 # ← 接住「真实抛出的那个类型」
+                raise ParseError(f"无法把 {text!r} 解析成整数: {exc}") from exc
+        口诀：**改异常类型 = 改契约，必须同时检查所有调用方的 except**（改一处、崩一片）
+        另：`__main__` 里把 ⑧-2 的裸调用挪到**最后**，让 ⑨-1 的输出先打印
+   实测（导师代改后）：`uv run python learning/day06_errors.py` → 打印 `ParseError ValueError`；
+        随后第 99 行裸调用按预期崩，traceback 首行 `ParseError`、`__cause__` 为 `ValueError`
+        （`ruff check` → All checks passed；`mypy` → Success）
+   副作用观察（值得记住）：⑨ 之后 `load_setting` 里那句 `except ValueError` 也**变成了死分支** ——
+        它接不到 ParseError，于是 ParseError 一路穿到 `__main__` 的 `except AppError` 才被抓住。
+        这正是「一个 AppError 基类 + 子类」的价值：上层兜底那一处不用跟着改
+   Java 对照：≈ 把 `catch (IOException e)` 留着，却把方法改成抛 IllegalArgumentException 后直冲上层 ——
+        Java 里 checked 异常会强迫你处理；Python 连编译期都不看，全靠自己顺着调用链检查
+   复发：—
+
+   ── 📌 Day 6 会话小结（收尾 2026-10-18）
+   · 本轮全部通过：⑦ mypy（3 道口头题由导师作答并讲解）、⑧ 异常处理、⑨ 自定义异常；
+     ⑥ ruff 的两个遗留项由导师代改（`r"""` + `per-file-ignores`），`ruff check learning/` 从 59 → 5 条
+     （剩 5 条 F823/F841/F401/F403/F405 留在老文件里，Day 25 一并修）
+   · 新增错题：M-06-4（select 替换语义）、M-06-5（Java 工具对照）、M-06-6（捕获范围过宽）、
+     M-06-7（except 类型对不上 → 死分支）；M-06-3 降级 ⊘ 手误类
+   · 待复习（下轮 Day 7 复盘日抽题）：M-06-4、M-06-5、M-06-6、M-06-7
+   · Day 7 = 复盘日：抽题复习 + CLI 小工具 + pytest 入门
