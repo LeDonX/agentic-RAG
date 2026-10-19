@@ -42,7 +42,7 @@
   ☐ M-06-2  Day6  相对导入失败的根因说成「父目录不存在」（实为缺包身份 `__package__`）
   ⊘ M-06-3  Day6  dict key 未加引号 / 把 TOML 表头搬进 Python → NameError  〔降级 2026-10-18：手误类（引号/语法层），不入复习抽题〕
   ☐ M-06-4  Day6  ⑥-3 答「变窄」但实测 20→59 变多 —— `select` 是**替换**默认集，不是叠加
-  ☐ M-06-5  Day6  Q3 Java 工具对照答成「没有严格对应」（Checkstyle/PMD ↔ check，Spotless ↔ format）
+  🔁 M-06-5  Day6  Q3 Java 工具对照答成「没有严格对应」（Checkstyle/PMD ↔ check，Spotless ↔ format）；**Day 07 复发（计数 2）**
   ☐ M-06-6  Day6  捕获范围开太宽：把 TypeError 并进「输入非法」→ 掩盖了 `int(str)` 这个自造 bug
   ☐ M-06-7  Day6  `except` 捕了一个**永远不会被抛出**的类型（`except ParseError` 接 `int()` 抛的 ValueError）→ 死分支、异常静默穿透
 
@@ -720,7 +720,7 @@
         ruff format ≈ Spotless / google-java-format（Formatter）；
         `[tool.ruff.lint] select` ≈ checkstyle.xml 里启用的 module 清单 / Spotless 里配的规则
    Java 对照：Java 侧 = Checkstyle + PMD + ErrorProne + Spotless 四件套；ruff 一个工具全包（检查 + 格式化）
-   复发：—
+   复发：Day 07（复盘日 Q3 又一次答不出「ruff check/format/select ↔ Java 工具」；已由导师现场补讲对照表），计数 2
 
  【M-06-6】捕获范围开太宽，把「自造的编程错」也伪装成了「输入非法」   #概念
    现象：⑧-2 里写 `i = int(str)`（本意是参数 `text`，却把内置类型 `str` 传了进去），
@@ -776,3 +776,33 @@
      M-06-7（except 类型对不上 → 死分支）；M-06-3 降级 ⊘ 手误类
    · 待复习（下轮 Day 7 复盘日抽题）：M-06-4、M-06-5、M-06-6、M-06-7
    · Day 7 = 复盘日：抽题复习 + CLI 小工具 + pytest 入门
+
+
+════════════════════════════════════════════════════════════════════
+ 🗓️  Day 07 — 复盘日：错题抽题 + CLI 小工具 + pytest 入门（2026-10-19，进行中）
+════════════════════════════════════════════════════════════════════
+ 📦 产出物：learning/day07_cli.py（进行中）
+
+ ── 🔁 一、复盘抽题（Day 6 错题回顾）──────────────────────────────
+  · M-06-7（except 死分支 / 捕获范围）：Q1 类型不匹配答对（`int()` 抛 ValueError；`except ParseError` 是死分支）；
+        Q2「为什么作答区空白」只答「没捕获到」→ 真因是「**崩点漂移**」：`__main__` 里 ⑧-2 的裸调用先崩，
+        后面 ⑨ 的输出根本没跑到；Q3 Java 对照方向对（捕获不到 + 靠运行时/约定）但缺 checked exception 对比
+        → 结论：核心概念在、第 3 个根因不全 → 留复习
+  · M-06-4（ruff `select` 语义）：Q1 方向已修正（`select` = 指定启用哪些规则，是「**替换**」默认集）；
+        Q2（为什么变多）答成循环论证 → 判据遗漏：「**默认集 ⊂ 你写的集 → 变多**」；
+        本机默认只开一小块 E 族（不含 E501/E402），显式写 `"E"` 后 pycodestyle 整族打开 → 20 → 59
+  · M-06-5（Java 工具对照）：Q3 又一次答不出 → **复发 Day 07，计数 2**（已由导师现场补讲对照表）
+  · M-06-6（捕获范围过宽）：并入 M-06-7 现场讲解（except 只捕「预期内、且我知道怎么处理」的错误）
+
+ ── 💡 二、知识点速记（Block B ③ 已完成）─────────────────────────
+  · 命令行参数：`sys.argv` ≈ Java `String[] args`，但 **`argv[0]` 是脚本名**（Java 的 `args[0]` 才是第一个业务参数）
+  · `argparse` ≈ picocli / args4j：声明式定义 → 自动生成 `--help` / 类型转换 / 默认值
+  · 名字自动派生：`--min-chars` → `args.min_chars`（连字符换下划线）；位置参数名不能带 `-`
+  · `type=` 转换失败 → argparse **直接 `sys.exit(2)`**，不抛异常、`try/except` 接不住
+  · ③ 验收：`build_parser` 三参数生效，`--help` 显示 `--min-chars MIN_CHARS`（观察点命中）；
+        口头提醒（不入错题）：多加了 `--top`；`__main__` 用裸 `print` 未按题面 f-string 标签
+
+ ── 📌 Day 7 会话小结（暂停 2026-10-19，学员回家续）──────────────
+  · 已完成：Block A 复盘抽题 ①②；Block B ③ argparse（讲完 + 验收通过）
+  · 待续：④ `iter_files`（TODO 已落盘未作答）→ ⑤ 结构拆分 → ⑥⑦ pytest → `uv` 加 `pytest` → 验收（`pytest` 全绿）
+  · 恢复点：`learning/day07_cli.py` 的 **TODO ④ `iter_files`**

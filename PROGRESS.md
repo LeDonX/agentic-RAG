@@ -17,12 +17,12 @@
 - 开始日期：2026-10-10
 
 ## 当前进度
-- **当前 Day：6（✅ 已完成，2026-10-18 收尾）；下一站 Day 7（复盘日：抽题复习 + CLI 小工具 + pytest 入门）**
+- **当前 Day：7（🟡 进行中，2026-10-19 暂停；剩 Block B ④⑤ + Block C ⑥⑦ 待续）**
 - **当前里程碑：M1（可运行版）**
-- 上次会话（2026-10-16，Day 5 收尾）：**Day 5 全部完成并通过验收**——Block A ①–⑤ + Block B ⑥–⑩ 全部讲完、跑通、逐个验收；Day 5 最终版 `Document` 固化
-- 本次会话（2026-10-18，Day 6 收尾）：**Day 6 全部完成**——Block A ①②③（模块 / 包 / 导入：执行模型、`sys.modules`/`sys.path`/`__main__`、`__package__` 与相对导入）、Block B ④⑤（`pyproject.toml` 解剖 + uv 工作流）、**Block C ⑥⑦（ruff + mypy）**、**Block D ⑧⑨（异常处理 + 自定义异常层次）** 全部讲完、练习跑通、逐个验收通过；`pyproject.toml` 新增 `[dependency-groups].dev` + `[tool.ruff]` + `[tool.mypy]`；错题 M-06-1…7（M-06-3 降级 ⊘）
-- **恢复点（新机器从这里起）**：Day 6 已完成 → 读 `LEARNING_PLAN.md`，从 **Day 7（复盘：CLI 小工具 + pytest 入门）** 开始
-- 下一步：Day 7 —— 复盘日（先抽 M-06-4/5/6/7 复习）→ CLI 小工具 → pytest 入门
+- 上次会话（2026-10-18，Day 6 收尾）：**Day 6 全部完成并通过验收**——Block A ①②③ + Block B ④⑤ + Block C ⑥⑦ + Block D ⑧⑨ 全部讲完、跑通、逐个验收通过；`ruff` 通过、`mypy` 通过
+- 本次会话（2026-10-19，Day 7 暂停，学员回家续）：**Block A 复盘抽题 ①② 完成**——M-06-7（Q1 类型不匹配答对；Q2/Q3 根因不全，留复习）、M-06-4（Q1 方向已修正、Q2 根因未串起）、**M-06-5 复发 Day 07（Q3 Java 工具对照第二次答不出，计数 2）**、M-06-6（并入 M-06-7 现场讲解）；**Block B ③ argparse 讲完并验收通过**（`--min-chars` → `args.min_chars` 观察点命中）；**④ `pathlib` / `iter_files` 已讲、TODO 已落盘，学员尚未作答**；⑤⑥⑦ 未开始
+- **恢复点（新机器从这里起）**：Day 7 进行中 → 读本文件「下一步」，从 **Block B ④ `iter_files`** 继续
+- 下一步：④ `pathlib.Path` → ⑤ 结构拆分（纯函数 + `main()` + `if __name__ == "__main__"` 薄壳）→ ⑥⑦ pytest 入门（发现规则 / `parametrize` / `raises`）→ 把 `pytest` 加进 `[dependency-groups].dev` 并 `uv sync` → 验收（`pytest` 全绿）
 - ✅ `learning/day04_functions.py` 已全量跑通（`uv run python learning/day04_functions.py`）
 - ✅ `learning/day05_oop.py` 全量可跑（`uv run python learning/day05_oop.py` → `exit=0`），含 Block A ①–⑤ 与 Block B ⑥⑦ 全部练习
 - ✅ `learning/day05_oop_b.py` 全量可跑（Block B ⑧⑨⑩ 练习 + 作答全在册）
@@ -61,7 +61,7 @@
 | 4 | 控制流与函数（默认参数、`*args/**kwargs`、lambda） | 已完成 | `learning/day04_functions.py` | Block A 5/5 + Block B 5/5（⑥⑦⑧⑨⑩）全部完成并跑通；Day 4 验收通过；错题 M-04-1/2/3/4 |
 | 5 | 面向对象（class、`self`、`@dataclass`、魔术方法） | 已完成 | `learning/day05_oop.py` + `learning/day05_oop_b.py` | Block A ①–⑤ + Block B ⑥–⑩ 全部讲完、跑通、逐个验收通过；Day 5 最终版 `Document` 固化；错题 M-05-1…12；验收 = 能对比 Java 类与 Python 类 |
 | 6 | 模块/包/依赖管理/类型注解/异常 | 已完成 | `learning/day06_utils.py`、`day06_modules.py`、`day06_pkg/` + `day06_pkg_demo.py`、`day06_cache.py`、`day06_deps.py`、`day06_uv.py`、`day06_ruff.py`、`day06_mypy.py`、`day06_errors.py`；`pyproject.toml`（dev 组 + `[tool.ruff]` + `[tool.mypy]`） | Block A ①②③ + Block B ④⑤ + Block C ⑥⑦ + Block D ⑧⑨ 全部完成并验收；ruff All checks passed / mypy Success；错题 M-06-1…7（M-06-3 ⊘） |
-| 7 | 复盘：CLI 小工具 + pytest 入门 | 未开始 | | |
+| 7 | 复盘：CLI 小工具 + pytest 入门 | 🟡 进行中 | `learning/day07_cli.py`（③ 完成，④ TODO 已落盘） | Block A ①② 复盘完成；Block B ③ argparse 验收通过；④–⑦ 待续 |
 
 **Week 2 — LLM & RAG 基础 + 最小可用 RAG**
 
@@ -146,6 +146,7 @@
 - [ ] README + architecture.md + 面试问答整理完成
 
 ## 遗留问题 / 待办
+- 🟡 **Day 7 进行中（2026-10-19 暂停）**：恢复点 = `learning/day07_cli.py` 的 **TODO ④ `iter_files`**；④⑤⑥⑦ 与 pytest 验收待续。`learning/demo.py` / `learning/demo2.py` 是讲解示例（`sys.argv` / argparse）的临时复刻 —— 按 PROMPT 规则 5「示例不落盘」**未纳入 git**，可自行删除
 - ✅ **Day 4 已完成**：Block A 5/5 + Block B 5/5（⑥⑦⑧⑨⑩）全部跑通；验收通过
 - ✅ **环境已复核（2026-10-14 本机）**：uv 0.13.1 / `uv run python` 3.12.15 / `.venv` 存在（详见「环境信息」）
 - **待复习错题**：M-04-1（`if` 过滤代替打印布尔结果）、M-04-2（空容器判假说成「空值为 0」）、M-04-3（只 print 的函数再套一层 print → 多打 `None`）、**M-04-4（`for...else` 条件漏掉「没被 break」）**；M-03-3/4/5；M-03-1/2/6 已掌握
@@ -174,3 +175,4 @@
 | 2026-10-16 | 5（进行中） | 四次流程反馈落地：① 新增协作规则 6（题面极简 / 题下空行 / 口头题预置 `#` / 合并凑数小题）→ ② 二次校准（追加「理解支架」：必要上下文 + 起跑点片段 + 口头题可多条、难度递增、带引导）→ ③ 新增协作规则 7（文件拆分）→ ④ 错题协议新增「手误不记、只记概念偏差」过滤标准；据此把 M-03-4/M-03-5/M-05-5/M-05-7 降级为 ⊘；**Block B ⑦ 多继承与 MRO 讲完、练习跑通、验收通过**；⑧ 题面按新规则重写并迁到新文件 `learning/day05_oop_b.py`（⑦ 及以前的 `day05_oop.py` 不迁移） | `NOTES.txt` → Day 05（错题 M-05-8 计数 3、新增 M-05-9；索引加 ⊘ 降级标注） | 续 Day 5：Block B ⑧`@dataclass` → ⑨⑩（在 `day05_oop_b.py`） |
 | 2026-10-16 | 5（✅ 完成） | 开场自测「无参 `super()` 沿 MRO」独立复述通过（M-05-8 消化）；**Block B ⑧`@dataclass`、⑨`__repr__`/`__str__`、⑩`__eq__`/`__len__` 讲完、练习跑通、逐个验收通过**（全在 `learning/day05_oop_b.py`）；Day 5 收尾：速记补齐 ⑦–⑩、状态行更新 | `NOTES.txt` → Day 05（速记 ⑦–⑩ + 错题 M-05-10/11/12；索引加 M-05-12） | Day 6：模块/包/依赖管理/类型注解/异常 |
 | 2026-10-18 | 6（✅ 完成） | **Day 6 全部完成**：Block A ①②③（模块/包/导入：执行模型、`sys.modules`/`sys.path`/`__main__`、`__package__` 与相对导入）+ Block B ④⑤（`pyproject.toml` 解剖 + uv 工作流）+ Block C ⑥⑦（ruff / mypy）+ Block D ⑧⑨（异常处理 / 自定义异常层次）全部讲完、练习跑通、逐个验收通过；⑥ 两个遗留项（`r"""` 裸串 + `per-file-ignores`）由导师代改后 `ruff check learning/` 59 → 5 条；⑦ mypy 三题由导师作答讲解；⑨-1 因 `except ParseError` 死分支未通过 → 导师代改并实测 `ParseError ValueError`；错题 M-06-4/5/6/7（M-06-3 降级 ⊘） | `NOTES.txt` → Day 06（知识点速记 Block A–D + 错题 M-06-1…7 + Day 6 会话小结） | Day 7：复盘日（抽题复习 + CLI 小工具 + pytest 入门） |
+| 2026-10-19 | 7（🟡 进行中） | Block A 复盘抽题 ①② 完成（M-06-4/5/6/7 逐条复盘，M-06-5 复发 Day 07）；Block B ③ argparse 讲完并验收通过；④ `pathlib`/`iter_files` 已讲、TODO 已落盘待作答 | `NOTES.txt` → Day 07（进行中：复盘记录 + M-06-5 复发） | 续 Day 7：Block B ④ → ⑤ → Block C ⑥⑦ pytest → `uv sync` → 验收 |
