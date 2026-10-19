@@ -45,6 +45,8 @@
   🔁 M-06-5  Day6  Q3 Java 工具对照答成「没有严格对应」（Checkstyle/PMD ↔ check，Spotless ↔ format）；**Day 07 复发（计数 2）**
   ☐ M-06-6  Day6  捕获范围开太宽：把 TypeError 并进「输入非法」→ 掩盖了 `int(str)` 这个自造 bug
   ☐ M-06-7  Day6  `except` 捕了一个**永远不会被抛出**的类型（`except ParseError` 接 `int()` 抛的 ValueError）→ 死分支、异常静默穿透
+  ☐ M-07-1  Day7  `rglob` 实参写成字面后缀 `f".{ext}"`（应为 glob 模式 `f"*.{ext}"`）→ 目录分支永远返回 `[]`
+  ☐ M-07-2  Day7  函数注解 `-> list[Path]` 却有隐式返回 `None` 的路径（root 不存在）→ mypy Missing return statement
 
   规则：同一根因再次踩坑不新增条目，只在原条目追加「复发：Day XX」并把计数 +1。
   更正（2026-10-16）：新增「错题过滤标准」—— 判据 = 看到报错 / 提醒后几秒内自己能改对的是「手误」，
@@ -802,7 +804,86 @@
   · ③ 验收：`build_parser` 三参数生效，`--help` 显示 `--min-chars MIN_CHARS`（观察点命中）；
         口头提醒（不入错题）：多加了 `--top`；`__main__` 用裸 `print` 未按题面 f-string 标签
 
- ── 📌 Day 7 会话小结（暂停 2026-10-19，学员回家续）──────────────
-  · 已完成：Block A 复盘抽题 ①②；Block B ③ argparse（讲完 + 验收通过）
-  · 待续：④ `iter_files`（TODO 已落盘未作答）→ ⑤ 结构拆分 → ⑥⑦ pytest → `uv` 加 `pytest` → 验收（`pytest` 全绿）
-  · 恢复点：`learning/day07_cli.py` 的 **TODO ④ `iter_files`**
+ ── � 三、今日错题（④ review 当场记录，2026-10-19 续）─────────────────
+ 【M-07-1】`rglob` 的实参写成「字面后缀」而不是「glob 模式」→ 目录分支永远返回 `[]`   #概念
+   现象：④ `iter_files` 目录分支实测返回 `[]`
+        （`uv run python learning/day07_cli.py learning --ext py` → `[]`）；文件分支正确
+        （`... learning/day07_cli.py --ext py` → `[WindowsPath('learning/day07_cli.py')]`）
+   错误写法：`return sorted(root.rglob(f".{ext}"))`
+   根因：`rglob(arg)` 的 arg 是 **fnmatch 通配模式**，不是「后缀比较」；
+        写 `".py"` 会被当成「名为 `.py` 的那个条目」→ 匹配不到任何 `xxx.py` → 空列表
+   正解：`sorted(root.rglob(f"*.{ext}"))`（或先 `root.rglob("*")` 再按 `p.suffix == f".{ext}"` 过滤）
+   Java 对照：`Files.walk()` 只负责遍历、过滤要自己写 Predicate；
+        Python `rglob` 把「遍历 + 名字匹配」二合一，但匹配用的是 **glob 语法**（`*` / `?` / `[]`），
+        相当于 `PathMatcher("glob:*.py")`，而不是 `endsWith(".py")`
+   复发：—
+
+ 【M-07-2】函数注解 `-> list[Path]`，却有「隐式返回 None」的路径 → mypy `Missing return statement`   #概念
+   现象：`iter_files` 两个 `if` 之后没有兜底 return → root 既非文件也非目录（路径不存在）时落到函数末尾，
+        实际返回 `None`，与注解不符；`uv run mypy learning/day07_cli.py` →
+        `error: Missing return statement  [return]`
+   根因：Python 函数**没有显式 return 就返回 None**；动态类型下不报错，
+        只有 mypy 这类静态检查能抓「不是所有分支都 return」
+   正解：两分支之后补 `return []`（或重构成单一出口 return）
+   Java 对照：Java「非 void 方法必须在所有路径 return」是**编译期强制**（漏了就 compile error）；
+        Python 没有这层强制，只能靠 mypy 兜底
+   复发：—
+   旁注（手误类，不入错题，仅本次 review 口头指出）：`ruff check learning/day07_cli.py` 报 6 条 ——
+        3×W293（空白行带尾随空格）、1×W292（文件末尾无换行）、2×I001（import 分散：
+        `argparse` 与 `pathlib` 之间隔着代码，isort 要求 import 集中到顶部一块）；
+        ⑤ 重构把 import 提到文件顶部后 I001 自然消失
+        复发：Day 07 ⑤ —— 同批手误（尾随空格 / 未逐条对题）仍未被清，第 2 次 → 转**导师侧流程修复**：
+        出题题面固定加一行「交卷前 `uv run ruff check <本次改动文件>` 清到 All checks passed 再交」
+        （PROMPT.md 规则 6 已登记）
+
+ ── 五、知识点速记（Block B ⑤ 结构拆分 · 验收通过 2026-10-19）──────────
+  · 拆分目的：**纯函数**（可测）× **`main()`** 接线 × **`__main__` 薄壳**；
+    逻辑若写进 `if __name__ == "__main__":` 块里 → 别人 import 就会执行（Day 6 的 `__main__` 语义），测不了
+  · `main(argv: list[str] | None = None)`：把 argv 做成**形参**（不是直接读 sys.argv）→ 测试可喂假命令行；
+    `raise SystemExit(main())` ≈ Java `System.exit(code)`，`main` 返回 0 = 成功
+  · 纯函数的定义：只靠入参 → 出参，无 print、无 IO —— 如 `count_words(text, min_chars)` 只切词 + 计数
+  · ⑤ 验收：两条 CLI 命令均输出 `word -> count` 列表；`import day07_cli` **不产生任何 CLI 输出**（薄壳生效）；
+    `mypy` → Success
+  · 遗留：`ruff` 5 条（1×I001「import 块后需 **2** 个空行」+ 3×W293 空行尾随空格 + 1×W292 末尾无换行）
+    ＝手误 → 已按新增的「交卷前自检」要求清
+
+ ── 四、知识点速记（Block B ④ · iter_files 验收通过 2026-10-19）──────────
+  · `Path` ≈ `java.nio.file.Path`（不可变值对象）；`/` 运算符重载做拼接
+  · 取信息（不碰盘）：`.name` / `.suffix`（带点）/ `.stem` / `.parent`；判类型（碰盘）：`.exists()` / `.is_file()` / `.is_dir()`
+  · 找文件：`glob`（当前层）vs `rglob`（递归）= `Files.newDirectoryStream` vs `Files.walk`，均返回**惰性生成器**；
+    `sorted(...)` 可直接吃生成器；Path 之间可比较（PurePath 定义了排序）
+  · ④ 验收：目录分支 → 已排序 py 列表（`[:3]` = day01/day02/day03，预测命中）；文件分支 → `[WindowsPath('learning/day07_cli.py')]`；
+    `mypy` → Success；M-07-1（`*.{ext}`）与 M-07-2（兜底 return）均由学员自修
+  · ruff 残余 6 条全为手误（2×I001 + 1×W291 + 2×W293 + 1×W292）→ 不入错题；
+    I001 待 ⑤ 重构 import 归位后消失，其余请顺手清
+
+ ── 六、知识点速记（Block C ⑥ pytest 基础 · 3 passed 2026-10-19）──────────
+  · 发现规则（靠命名，不靠注解）：文件 `test_*.py` / `*_test.py`；函数 `test_*`；类 `Test*`（不能有 `__init__`）
+    → `day07_cli.py` 不叫 `test_*` 故不被收集（⑤ 薄壳的意义所在）
+  · pytest 会把测试文件所在目录加进 `sys.path`（该目录无 `__init__.py`）→ 直接 `import day07_cli` 即可
+  · 断言：裸 `assert 实际 == 期望`（≈ `assertEquals`）；纯 Python 下失败只给 `AssertionError`，
+    pytest 会**重写 assert** 并把两边值打印出来
+  · `--co`（collect-only）只收集不执行，可用来单独验证「发现 + import」是否正常
+  · ⑥ 验收：3 个测试全 PASSED（`uv run pytest learning/ -v`）；学员用 `Path(__file__).parent` 定位被测文件（稳健写法）
+  · 遗留：ruff 报 1×W292（文件末尾无换行）＝手误 → 仍走「交卷前自检」（学员本轮又没先跑 ruff）
+  · 环境告警（非阻塞）：`PytestCacheWarning: could not create cache path .pytest_cache\v\cache\nodeids [WinError 5]`
+    —— 写 `.pytest_cache` 被拒（疑残留句柄/权限），不影响测试；留意 `.gitignore` 是否忽略 `.pytest_cache`
+
+ ── 七、知识点速记（Block C ⑦ pytest 进阶 · 6 passed 2026-10-19）──────────
+  · `@pytest.mark.parametrize("a,b,c", [(..),(..),..])` ≈ JUnit `@ParameterizedTest` + `@CsvSource`：
+    第一个参数是**参数名串**（一次引号包整串，勿写成裸变量）；第二个参数是「每组一个元组」的列表
+  · pytest 把**每行实参拼成用例 id**（如 `[a bb a ccc-0-expected0]` / `[-0-expected2]`）→ 一眼定位哪组挂了
+  · 空参数表 → 该用例 `SKIPPED [NOTSET]`（框架对、只缺数据）
+  · `with pytest.raises(FileNotFoundError): <会抛异常的语句>` ≈ JUnit `assertThrows`；不抛或抛别的类型 → 用例失败
+  · ⑦ 验收：参数化 3 组 + raises 均 PASSED → `uv run pytest learning/ -v` = **6 passed**；
+    `uv run ruff check learning/day07_cli.py learning/test_day07_cli.py` → All checks passed；`mypy` → Success
+  · 教学调整：⑦a 降为**填空级**（导师给装饰器/签名/断言骨架 + `import pytest`，学员只填 3 行数据）以缓解倦怠
+
+ ── �� Day 7 会话小结（✅ 完成 2026-10-19）──────────────
+  · 已完成：Block A 复盘抽题 ①②；Block B ③ argparse + ④ `iter_files` + ⑤ 结构拆分；Block C ⑥⑦ pytest 入门
+  · 验收：`uv run pytest learning/ -v` → **6 passed**（day07 两文件 ruff All checks passed / mypy Success）
+  · 产出物：`learning/day07_cli.py`（wordcount CLI）+ `learning/test_day07_cli.py`（4 个测试函数 → 6 用例）
+  · 教学调整：学员中途质疑「pytest 有必要学吗 / 想要傻瓜替代品」→ 澄清 pytest 已是最简（替代品 unittest 更啰嗦），
+    给出 Java 映射（parametrize ≈ @ParameterizedTest、raises ≈ assertThrows）；⑦ 拆为 ⑦a/⑦b，⑦a 降为**填空级**缓解倦怠
+  · 错题：M-07-1（`rglob` 实参应为 glob 模式）、M-07-2（隐式返回 None → mypy `Missing return statement`），均由学员自修
+  · 恢复点：Day 8 —— LLM 基础 + Ollama 安装拉模型
