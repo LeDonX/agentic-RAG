@@ -17,12 +17,31 @@
 - 开始日期：2026-10-10
 
 ## 当前进度
-- **当前 Day：7（✅ 已完成，2026-10-19）**
+- **当前 Day：8（✅ 已完成，2026-10-20）**
 - **当前里程碑：M1（可运行版）**
-- 上次会话（2026-10-18，Day 6 收尾）：**Day 6 全部完成并通过验收**——Block A ①②③ + Block B ④⑤ + Block C ⑥⑦ + Block D ⑧⑨ 全部讲完、跑通、逐个验收通过；`ruff` 通过、`mypy` 通过
-- 本次会话（2026-10-19，Day 7 收尾）：**Day 7 全部完成并通过验收**——Block A 复盘抽题 ①②（M-06-4/5/6/7 逐条复盘，M-06-5 复发 Day 07）；**Block B ③ argparse、④ `iter_files`、⑤ 结构拆分（纯函数 `count_words` + `main(argv)` + `__main__` 薄壳）** 讲完、跑通、逐个验收通过；**Block C ⑥⑦ pytest 入门**（发现规则 / 裸 assert / `@pytest.mark.parametrize` / `pytest.raises`）验收通过；`pytest` 已加入 `[dependency-groups].dev` 并 `uv sync`；**验收 = `uv run pytest learning/ -v` → 6 passed**；day07 两文件 `ruff` All checks passed / `mypy` Success；错题 M-07-1（`rglob` 实参应为 glob 模式）、M-07-2（隐式返回 None → mypy）均由学员自修
-- **恢复点（新机器从这里起）**：Day 8 未开始 → 读本文件「下一步」，从 **Day 8 LLM 基础 + Ollama 安装** 继续
-- 下一步：**Day 8 —— LLM 基础 + Ollama 安装拉模型**（装 Ollama、`ollama pull` 拉模型、跑通一次本地对话；为 Day 9 直连 Ollama API 做准备）
+- 上次会话（2026-10-19，Day 7 收尾）：**Day 7 全部完成并通过验收**——Block A 复盘抽题 ①②（M-06-4/5/6/7 逐条复盘，M-06-5 复发 Day 07）；**Block B ③ argparse、④ `iter_files`、⑤ 结构拆分（纯函数 `count_words` + `main(argv)` + `__main__` 薄壳）** 讲完、跑通、逐个验收通过；**Block C ⑥⑦ pytest 入门**（发现规则 / 裸 assert / `@pytest.mark.parametrize` / `pytest.raises`）验收通过；`pytest` 已加入 `[dependency-groups].dev` 并 `uv sync`；**验收 = `uv run pytest learning/ -v` → 6 passed**；day07 两文件 `ruff` All checks passed / `mypy` Success；错题 M-07-1（`rglob` 实参应为 glob 模式）、M-07-2（隐式返回 None → mypy）均由学员自修
+- 本次会话（2026-10-20，Day 8 收尾）：**Day 8 全部完成并通过验收**——Block A ① token/上下文窗口、② prompt 角色结构、③ 采样参数、④ 幻觉与 RAG 动机；Block B ⑤ Ollama 架构与模型管理（合并讲，安装/拉取已不适用）；**Block C ⑧ 5 题冒烟测试 → 结论：`qwen3.5:9b` 够用**（4 题通过、1 题部分通过，见下「冒烟测试结论」）
+- **恢复点（新机器从这里起）**：Day 9 未开始 → 读本文件「下一步」，从 **Day 9 直连 Ollama API（messages 结构）** 继续
+- 下一步：**Day 9 —— Python 直连 Ollama API**：用 `httpx`/`requests` 直接调 `/api/chat`，吃透 `messages`/`stream`/`options` 结构，为 Day 10 LangChain 铺路
+
+### 🔬 Day 8 冒烟测试结论（判定本地小模型是否够用）
+
+**结论：`qwen3.5:9b` 够用，**不需要**启用 DeepSeek / 通义千问云端兜底。**
+
+| # | 测试项 | 结果 | 判定 |
+|---|---|---|---|
+| T1 | 指代消解改写（"那超过30天还能报吗" → 独立查询） | `公司差旅报销是否允许在超过 30 天后进行申请？` | ✅ 通过 |
+| T2 | 口语 → 检索关键词 | `新员工 第一年 年假天数 法律规定 累计工作时间` | ⚠️ 部分通过（自行扩写出「法律规定/累计工作时间」，原文没有） |
+| T3 | 相关性评分（相关片段） | `{"score": 1.0, "reason": "资料直接给出了…具体数值。"}` | ✅ 通过（但注意 1.0 饱和） |
+| T4 | 充分性判断（资料不足） | `{"sufficient": false, "reason": "资料仅说明提交时限，未提及绩效…"}` | ✅ 通过 |
+| T5 | 结构化抽取 | `{"amount": 600, "deadline_days": 15}` | ✅ 通过 |
+
+**关键取舍（写入 Day 17/19 设计约束）**：
+1. **改写要用「独立问句型」，不要用「关键词型」** —— T2 证明关键词型改写会自行补充原文没有的概念（"法律规定"），会把检索带偏到劳动法而非公司制度。
+2. **评分会出现 1.0 饱和** —— 后续做 Corrective RAG 时不能只靠模型打分阈值，要配合检索分数（向量距离/BM25）双信号。
+3. **结构化输出稳定** —— `temperature=0` + `think=false` 下 T3/T4/T5 三次全部返回合法 JSON，可直接用 `json.loads()` 解析。
+4. **必须关 thinking** —— 同答案 token 差 7.8 倍（483 vs 62），`think` 要放在请求**顶层**，放 `options` 里无效。
+
 - ✅ `learning/day04_functions.py` 已全量跑通（`uv run python learning/day04_functions.py`）
 - ✅ `learning/day05_oop.py` 全量可跑（`uv run python learning/day05_oop.py` → `exit=0`），含 Block A ①–⑤ 与 Block B ⑥⑦ 全部练习
 - ✅ `learning/day05_oop_b.py` 全量可跑（Block B ⑧⑨⑩ 练习 + 作答全在册）
@@ -34,7 +53,14 @@
 - 包管理器：**uv 0.13.1**（本机为本次会话新装，位于 `C:\Users\10217\.local\bin`；新开终端若找不到 `uv`，先执行 `$env:Path = "$env:USERPROFILE\.local\bin;$env:Path"` 或重开终端）
 - 虚拟环境：项目根目录 `.venv`（存在；本次会话由 `uv sync` 重建）
 - 运行方式：统一用 `uv run python <脚本>`（裸 `python` 不在 PATH，直接调用会失败）
-- Ollama 模型：未安装（Day 8 处理）
+- **Ollama：已安装（客户端 0.32.14，`D:\Program Files\Ollama\ollama.exe`），服务 `http://127.0.0.1:11434`**
+- **主模型：`qwen3.5:9b`**（9.7B / Q4_K_M / **context 262144** / capabilities = completion + vision + tools + thinking）
+- 本地已有模型（`ollama list`，2026-10-20）：
+  `MedAIBase/Qwen3-VL-Reranker:2b`(3.4GB) · `qwen3-embedding:8b`(4.7GB) · `qwen3.5:9b`(6.6GB) ·
+  `gemma4:e4b`(9.6GB) · `qwen3-vl:8b`(6.1GB) · `deepseek-r1:14b`(9.0GB)
+  → Day 12 embedding 用 `qwen3-embedding:8b`；Day 27 重排用 `Qwen3-VL-Reranker:2b`
+- **选型变更**：原计划 `qwen2.5:7b` → 改用 `qwen3.5:9b`（上下文 32k→262k，且原生支持 tools，Day 15–18 不用换模型）
+- 硬件：RTX 3080（10GB 显存）/ 31.7GB 内存 / C 盘余 28GB、D 盘余 35GB
 - 关键依赖：暂无（骨架 `src/agentic_rag/`，入口点 `agentic-rag`）
 
 > ✅ **环境已复核（2026-10-14，本机）**：`uv --version` = 0.13.1；`uv run python --version` = 3.12.15；项目根 `.venv` 存在。
@@ -67,7 +93,7 @@
 
 | Day | 主题 | 状态 | 产出物 | 备注 |
 |---|---|---|---|---|
-| 8 | LLM 基础 + Ollama 安装拉模型 | 未开始 | | |
+| 8 | LLM 基础 + Ollama 安装拉模型 | ✅ 已完成 | `learning/day08_llm_basics.py`（①–⑤ 练习 + 导师补答 ④⑤） | Block A ①–④ + Block B ⑤（合并）+ Block C ⑧ 5 题冒烟测试全部完成；**结论：`qwen3.5:9b` 够用**（4 通过 / 1 部分通过）；错题 M-08-1/2/3 |
 | 9 | 直连 Ollama API（messages 结构） | 未开始 | | |
 | 10 | LangChain 入门（ChatModel / PromptTemplate / LCEL） | 未开始 | | |
 | 11 | 文档加载与切分（Splitter） | 未开始 | | |
@@ -146,7 +172,10 @@
 - [ ] README + architecture.md + 面试问答整理完成
 
 ## 遗留问题 / 待办
-- ✅ **Day 7 已完成（2026-10-19）**：Block A 复盘 ①② + Block B ③④⑤ + Block C ⑥⑦ 全部讲完、跑通、逐个验收通过；验收 = `uv run pytest learning/ -v` → 6 passed；`pytest` 已加入 dev 组。`learning/demo.py` / `learning/demo2.py` 是讲解示例（`sys.argv` / argparse）的临时复刻 —— 按 PROMPT 规则 5「示例不落盘」**未纳入 git**，可自行删除
+- ✅ **Day 8 已完成（2026-10-20）**：Block A ① token/上下文窗口、② prompt 角色结构、③ 采样参数、④ 幻觉与 RAG；Block B ⑤ Ollama 架构（安装/拉取已不适用，合并讲解）；Block C ⑧ 5 题冒烟测试 → **`qwen3.5:9b` 够用，不启云端兜底**。`day08_llm_basics.py` → `ruff` All checks passed；脚本可跑。学员要求 ④⑤ 由导师代答（概念题不硬塞函数 → PROMPT.md 规则 6 已新增该条）
+- **Day 8 教学调整（规则变更）**：PROMPT.md 规则 6 新增「**概念题不硬塞函数**」——判据 = 知识点是否为工程构件；纯概念只讲解 + 口头题；介于两者之间由导师演示、真正动手留到用它的那天
+- **待复习错题**：M-08-1（token vs 字符只答「无关」漏方向）、**M-08-2（system 不是硬优先级，是软约束 → prompt injection）**、**M-08-3（temperature 说成「相似度严格程度」）**；Day 7 遗留 M-06-5（Java 工具对照，计数 2）
+- **Day 9 需要动手准备**：`httpx` 尚未加入依赖（Day 9 用 `uv add httpx`）；`ollama serve` 需保持运行（已后台拉起）
 - **Day 7 遗留（不修，留 Day 25）**：`uv run ruff check learning/`（全目录）仍 5 条（`F841/F823` @`day04_functions.py`、`F401/F403/F405` @`day06_pkg_demo.py`，老文件教学噪声）——**非 day07 改动文件**，Day 7 交卷自检只针对改动文件，故不阻塞验收
 - ✅ **Day 4 已完成**：Block A 5/5 + Block B 5/5（⑥⑦⑧⑨⑩）全部跑通；验收通过
 - ✅ **环境已复核（2026-10-14 本机）**：uv 0.13.1 / `uv run python` 3.12.15 / `.venv` 存在（详见「环境信息」）
@@ -177,3 +206,4 @@
 | 2026-10-16 | 5（✅ 完成） | 开场自测「无参 `super()` 沿 MRO」独立复述通过（M-05-8 消化）；**Block B ⑧`@dataclass`、⑨`__repr__`/`__str__`、⑩`__eq__`/`__len__` 讲完、练习跑通、逐个验收通过**（全在 `learning/day05_oop_b.py`）；Day 5 收尾：速记补齐 ⑦–⑩、状态行更新 | `NOTES.txt` → Day 05（速记 ⑦–⑩ + 错题 M-05-10/11/12；索引加 M-05-12） | Day 6：模块/包/依赖管理/类型注解/异常 |
 | 2026-10-18 | 6（✅ 完成） | **Day 6 全部完成**：Block A ①②③（模块/包/导入：执行模型、`sys.modules`/`sys.path`/`__main__`、`__package__` 与相对导入）+ Block B ④⑤（`pyproject.toml` 解剖 + uv 工作流）+ Block C ⑥⑦（ruff / mypy）+ Block D ⑧⑨（异常处理 / 自定义异常层次）全部讲完、练习跑通、逐个验收通过；⑥ 两个遗留项（`r"""` 裸串 + `per-file-ignores`）由导师代改后 `ruff check learning/` 59 → 5 条；⑦ mypy 三题由导师作答讲解；⑨-1 因 `except ParseError` 死分支未通过 → 导师代改并实测 `ParseError ValueError`；错题 M-06-4/5/6/7（M-06-3 降级 ⊘） | `NOTES.txt` → Day 06（知识点速记 Block A–D + 错题 M-06-1…7 + Day 6 会话小结） | Day 7：复盘日（抽题复习 + CLI 小工具 + pytest 入门） |
 | 2026-10-19 | 7（✅ 完成） | **Day 7 全部完成**：Block A 复盘抽题 ①②（M-06-4/5/6/7，M-06-5 复发）× Block B ③ argparse / ④ `iter_files` / ⑤ 结构拆分（纯函数 + `main` + 薄壳）× Block C ⑥⑦ pytest 入门（发现规则 / `parametrize` / `raises`）；`pytest` 加入 dev 组 + `uv sync`；验收 `uv run pytest learning/ -v` → 6 passed；错题 M-07-1/2 由学员自修；⑦a 因学员倦怠降为**填空级**（导师给骨架、学员填 3 行数据） | `NOTES.txt` → Day 07（速记 ④/⑤/⑥/⑦ + 错题 M-07-1/2 + 会话小结） | Day 8：LLM 基础 + Ollama 安装拉模型 |
+| 2026-10-20 | 8（✅ 完成） | **Day 8 全部完成**：Block A ① token/上下文窗口（`max_chunks` 预算 + `//` 除法）、② prompt 角色结构（`build_messages` / `append_turn` 纯函数）、③ 采样参数（`stable_options` / `creative_options` / `merge_options`）、④ 幻觉与 RAG 动机；Block B ⑤ Ollama 架构与模型管理；Block C ⑧ **5 题冒烟测试 → `qwen3.5:9b` 够用**。**环境修正**：Ollama 早已安装、本地已有 6 个模型 → 主模型由 `qwen2.5:7b` 改为 `qwen3.5:9b`（262k 上下文 + 原生 tools）。**规则变更**：概念题不硬塞函数（PROMPT.md 规则 6）。错题 M-08-1/2/3 | `NOTES.txt` → Day 08（速记 ①–⑤ + 冒烟结论 + 错题 M-08-1/2/3） | Day 9：直连 Ollama API（messages 结构） |
