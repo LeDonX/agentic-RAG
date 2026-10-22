@@ -77,7 +77,10 @@ python project/
 ├── PROMPT.md                      # 导师提示词
 ├── LEARNING_PLAN.md               # 本文件
 ├── PROGRESS.md                    # 进度追踪
-├── NOTES.txt                       # 知识点速记 + 错题本（追加式）
+├── NOTES.md                       # 知识手册（按知识域分章，含示例与实测输出）
+├── MISTAKES.md                    # 错题本（题目 / 作答 / 正解 / 错因 / 验证）
+├── scripts/
+│   └── md_to_plain.py             # 生成手机阅读的 NOTES.txt / MISTAKES.txt
 ├── README.md
 ├── pyproject.toml                 # uv 管理依赖
 ├── .env.example
