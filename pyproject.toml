@@ -7,7 +7,9 @@ authors = [
     { name = "LeDonX", email = "ledon_n@163.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "httpx>=0.28.1",
+]
 
 [project.scripts]
 agentic-rag = "agentic_rag:main"
